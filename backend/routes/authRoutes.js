@@ -16,7 +16,7 @@ router.post("/register", async(req,res)=>{
         if(exists) return res.status(400).json({message:"User already exists"});
 
         //hash password
-        const hashedPassword = await bcrypt.hash(password,10);
+        const hashedPassword = await bcrypt.hash(password,10);//bcrypt.hash() method given by bcrypt for salting
 
         //craete user
         const user = await User.create({
@@ -41,11 +41,12 @@ router.post("/login",async(req,res)=>{
         if(!user) return res.status(400).json({message:"Invalid Credentials"});
 
         //check password
-        const isMatch = await bcrypt.compare(password,user.password);
+        const isMatch = await bcrypt.compare(password,user.password);//bcrypt.compare() method to compare previously hashed password's plain text with current password
         if(!isMatch)
             return res.status(400).json({message:"Invalid Credentials"});
 
         //create JWT Token
+        //!
         const token =jwt.sign(
             {id: user._id, role:user.role},
             process.env.JWT_SECRET,

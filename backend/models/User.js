@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
         default:"student",
     },
 },
-{timestamps:true}
+{timestamps:true}//will automatically add createdAt and updatedAt
 );
 
 export default mongoose.model("User", userSchema);

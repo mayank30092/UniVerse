@@ -38,7 +38,7 @@ router.get("/", async(req,res)=>{
         const events = await Event.find().populate("createdBy","name email");
         res.json(events);
     }catch(error){
-        res.satus(500).json({message: error.message});
+        res.status(500).json({message: error.message});
     }
 });
 
@@ -53,8 +53,8 @@ router.get("/:id", async(req,res)=>{
         const event = await Event.findById(req.params.id).populate("createdBy","name email");
         if(!event) return res.status(404).json({messgae:"Event not found"});
         res.json(event);
-    }catch(err){
-        res.satus(500).json({message: error.message});
+    }catch(error){
+        res.status(500).json({message: error.message});
     }
 });
 
@@ -70,7 +70,7 @@ router.post("/:id/register",verifyToken, async(req,res)=>{
         if(!event) return res.status(404).json({messgae:"Event not found"});
 
         if(event.participants.includes(req.user.id)){
-            return res.satus(400).json({message: "Already registered for the event"});
+            return res.status(400).json({message: "Already registered for the event"});
         }
         event.participants.push(req.user.id);
         await event.save();

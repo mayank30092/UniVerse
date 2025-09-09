@@ -1,9 +1,9 @@
 import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
+import dotenv from "dotenv";//for credentials
+import cors from "cors";//tells the browser which origins are allowed to access backend API
 import connectDB from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js";
-import eventRoutes from "./routes/eventRoutes.js";
+import authRoutes from "./routes/authRoutes.js";//authorization
+import eventRoutes from "./routes/eventRoutes.js";//event routes
 
 dotenv.config();
 connectDB();
