@@ -85,7 +85,12 @@ git commit -m "Add new feature"
 # 4. Push to your fork
 git push origin feature-name
 ```
+---
 
-👨‍💻 Author  
+## 👨‍💻 Author  
+
 Mayank Mittal  
-[![GitHub](https://img.shields.io/badge/GitHub-mayank30092-181717?style=for-the-badge&logo=github)](https://github.com/mayank30092)
+
+[![GitHub](https://img.shields.io/badge/GitHub-mayank30092-181717?style=for-the-badge&logo=github)](https://github.com/mayank30092)  
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Mayank%20Mittal-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mayankmittal30092)  
+
