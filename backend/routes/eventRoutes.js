@@ -1,6 +1,6 @@
 import express from "express";
 import Event from "../models/Event.js";
-import {verifyToken, isAdmin} from "../middleware/auth.js";
+import {verifyToken, isAdmin, isStudent} from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -21,7 +21,11 @@ router.post("/", verifyToken, isAdmin, async(req,res)=>{
             createdBy:req.user.id,
         });
 
-        res.status(201).json({message:"Event created successfully", event});
+        res.status(201).json({
+            success:true,
+            message:"Event created successfully", 
+            data:event
+        });
     }catch(error){
         res.status(500).json({message:error.message});
     }
@@ -35,8 +39,13 @@ router.post("/", verifyToken, isAdmin, async(req,res)=>{
 
 router.get("/", async(req,res)=>{
     try{
-        const events = await Event.find().populate("createdBy","name email");
-        res.json(events);
+        const events = await Event.find()
+        .populate("createdBy","name email")
+        .populate("participants", "name email");
+        res.json({
+            success:true,
+            data:events
+        });
     }catch(error){
         res.status(500).json({message: error.message});
     }
@@ -51,8 +60,12 @@ router.get("/", async(req,res)=>{
 router.get("/:id", async(req,res)=>{
     try{
         const event = await Event.findById(req.params.id).populate("createdBy","name email");
-        if(!event) return res.status(404).json({messgae:"Event not found"});
-        res.json(event);
+        if(!event) 
+            return res.status(404).json({
+                success:false,
+                messgae:"Event not found"
+            });
+        res.json({success:true, data:event});
     }catch(error){
         res.status(500).json({message: error.message});
     }
@@ -64,18 +77,23 @@ router.get("/:id", async(req,res)=>{
  * @access Student only
  */
 
-router.post("/:id/register",verifyToken, async(req,res)=>{
+router.post("/:id/register",verifyToken,isStudent, async(req,res)=>{
     try{
         const event = await Event.findById(req.params.id);
-        if(!event) return res.status(404).json({messgae:"Event not found"});
+        if(!event) return res.status(404).json({success:false,message:"Event not found"});
+
+        // ✅ Prevent registration for past events
+        if (new Date(event.date) < new Date()) {
+            return res.status(400).json({ success:false,message: "Event already passed" });
+        }
 
         if(event.participants.includes(req.user.id)){
-            return res.status(400).json({message: "Already registered for the event"});
+            return res.status(400).json({success:false,message: "Already registered for the event"});
         }
         event.participants.push(req.user.id);
         await event.save();
 
-        res.json({message:"Registered successfully",event});
+        res.json({ success:true,message:"Registered successfully",data:event});
     }catch(error){
         res.status(500).json({message:error.message})
     }
