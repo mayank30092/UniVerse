@@ -7,7 +7,12 @@ export const verifyToken = (req,res,next) =>{
             return res.status(401).json({message:"No token, authorization denied"});
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
+        req.user = {
+            id:decoded._id || decoded.id,
+            name:decoded.name,
+            email: decoded.email,
+            role: decoded.role,
+        };
         next();
     }catch(error){
         return res.status(401).json({message:"Invalid or expired token"})

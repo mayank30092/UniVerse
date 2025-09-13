@@ -63,11 +63,15 @@ export default function StudentDashboard() {
       ) : (
         <ul>
           {events.map((ev) => (
-            <li key={ev - _id}>
+            <li key={ev._id}>
               <h3>{ev.title}</h3>
               <p>{ev.description}</p>
               <p>
-                {new Date(ev.date).toLocalStorage()}@{ev.venue}
+                <strong>Date:</strong> {new Date(ev.date).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>Time:</strong> {ev.time || "Not specified"}{" "}
+                <strong>Venue:</strong> {ev.venue}
               </p>
               <p>Created by:{ev.createdBy?.name}</p>
               <p>Participants:{ev.participants?.length || 0}</p>
