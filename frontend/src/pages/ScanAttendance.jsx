@@ -1,9 +1,9 @@
-// frontend/src/pages/ScanAttendance.jsx
 import QRScanner from "../components/QRScanner";
+
 export default function ScanAttendance() {
   return (
     <div>
-      <h2>Scan Attendance</h2>
+      <h1>Scan Attendance</h1>
       <QRScanner />
     </div>
   );

@@ -37,21 +37,42 @@ export default function Login() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Login</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button type="submit">Login</button>
-    </form>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4">
+      <div className="w-full max-w-lg md:max-w-xl bg-white rounded-3xl shadow-2xl p-10 md:p-16 ">
+        <h2 className="text-3xl md:text-5xl font-bold text-center text-gray-800 mb-8">
+          Login to UniVerse
+        </h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-lg"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-lg"
+            required
+          />
+          <button
+            type="submit"
+            className="mt-6 px-4 py-4 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition text-lg"
+          >
+            Login
+          </button>
+        </form>
+        <p className="text-md text-gray-500 mt-6 text-center">
+          Don't have an account?{""}{" "}
+          <a href="/register" className="text-indigo-600 hover:underline">
+            Register
+          </a>
+        </p>
+      </div>
+    </div>
   );
 }

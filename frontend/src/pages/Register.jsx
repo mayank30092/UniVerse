@@ -36,7 +36,7 @@ export default function Register() {
         name: res.data.name,
       });
 
-      alert("Registration successful and loged in");
+      alert("Registration successful and logged in");
 
       //navigate to dashboard
       navigate(res.data.role === "admin" ? "/admin" : "/student");

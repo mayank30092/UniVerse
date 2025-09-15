@@ -189,9 +189,30 @@ router.post("/:id/attendance", verifyToken, isStudent, async (req, res) => {
       return res.status(400).json({ message: "This event does not require attendance" });
     }
 
-    const userId = req.user.id; // ✅ From token, not from QR
+    const userId = req.user.id;
+    const now = new Date();
+    const eventDate = new Date(event.date);
 
-    // Check if registered
+    // ✅ Restrict to same calendar day
+    if (eventDate.toDateString() !== now.toDateString()) {
+      return res.status(400).json({ message: "Attendance can only be marked on event day" });
+    }
+
+    // ✅ Optional ±2h window if event.time exists
+    if (event.time) {
+      const [hours, minutes] = event.time.split(":").map(Number);
+      const eventStart = new Date(eventDate);
+      eventStart.setHours(hours, minutes || 0, 0);
+
+      const windowStart = new Date(eventStart.getTime() - 2 * 60 * 60 * 1000);
+      const windowEnd = new Date(eventStart.getTime() + 2 * 60 * 60 * 1000);
+
+      if (now < windowStart || now > windowEnd) {
+        return res.status(400).json({ message: "Attendance window closed" });
+      }
+    }
+
+    // Check registration
     const participant = event.participants.find(
       (p) => p.user.toString() === userId
     );
@@ -215,8 +236,6 @@ router.post("/:id/attendance", verifyToken, isStudent, async (req, res) => {
   }
 });
 
-
-
 /**
  * @route   GET /api/events/:id/attendance-qrcode
  * @desc    Generate QR code for event attendance
@@ -231,6 +250,12 @@ router.get("/:id/attendance-qrcode",verifyToken,isAdmin,async(req,res)=>{
       return res.status(400).json({ message: "This event does not require attendance" });
     }
 
+     const qrToken = jwt.sign(
+      { eventId: event._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "10m" }
+    );
+
     const attendanceUrl =`${process.env.FRONTEND_URL}/scan-attendance/${event._id}`;
 
     const qrCodeDataURL = await QRCode.toDataURL(attendanceUrl);
@@ -240,5 +265,23 @@ router.get("/:id/attendance-qrcode",verifyToken,isAdmin,async(req,res)=>{
     res.status(500).json({ message: error.message });
   }
 })
+
+/**
+ * @route   POST /api/attendance/scan
+ * @desc    Verify QR token and mark attendance
+ * @access  Student only
+ */
+router.post("/scan", verifyToken, isStudent, async (req, res) => {
+  try {
+    const { qrToken } = req.body;
+    const decoded = jwt.verify(qrToken, process.env.JWT_SECRET);
+    req.params.id = decoded.eventId; // inject eventId
+    // Reuse existing logic
+    return router.handle(req, res);
+  } catch (error) {
+    return res.status(400).json({ message: "Invalid or expired QR code" });
+  }
+});
+
 
 export default router;
