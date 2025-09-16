@@ -45,31 +45,65 @@ export default function Register() {
     }
   };
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Register</h2>
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <select value={role} onChange={(e) => setRole(e.target.value)}>
-        <option value="student">Student</option>
-        <option value="admin">Admin</option>
-      </select>
-      <button type="submit">Register</button>
-    </form>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4">
+      <div className="w-full mx-w-lg md:max-w-xl bg-white rounded-3xl shadow-2xl p-10 md:p-16">
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">
+          Register for UniVerse
+        </h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <input
+            type="text"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg "
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg"
+            required
+          />
+          <div className="relative">
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="appearance-none w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-lg bg-white"
+            >
+              <option value="student">Student</option>
+              <option value="admin">Admin</option>
+            </select>
+
+            {/* Custom dropdown arrow */}
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+              ▼
+            </span>
+          </div>
+          <button
+            type="submit"
+            className="mt-6 px-6 py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition text-lg"
+          >
+            Register
+          </button>
+        </form>
+        <p className="text-md text-gray-500 mt-6 text-center">
+          Already have an account?{" "}
+          <a href="/login" className="text-blue-600 hover:underline">
+            Login
+          </a>
+        </p>
+      </div>
+    </div>
   );
 }

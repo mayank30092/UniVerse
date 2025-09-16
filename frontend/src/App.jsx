@@ -1,14 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
+import Home from "./pages/Home";
+import About from "./pages/About";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Home from "./pages/Home";
 import ProtectedStudentRoute from "./components/ProtectedStudentRoute";
 import StudentDashboard from "./pages/StudentDashboard";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 import EventDetails from "./pages/EventDetails";
 import ScanAttendance from "./pages/ScanAttendance";
+import Contact from "./pages/Contact";
 
 function App() {
   return (
@@ -18,6 +20,22 @@ function App() {
         element={
           <Layout>
             <Home />
+          </Layout>
+        }
+      />
+      <Route
+        path="/about"
+        element={
+          <Layout>
+            <About />
+          </Layout>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <Layout>
+            <Contact />
           </Layout>
         }
       />
@@ -59,6 +77,7 @@ function App() {
           </Layout>
         }
       />
+      <Route path="/admin/events/:id/scan" element={<ScanAttendance />} />
     </Routes>
   );
 }

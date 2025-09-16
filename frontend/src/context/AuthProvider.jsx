@@ -2,11 +2,7 @@ import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState({
-    token: null,
-    role: null,
-    name: null,
-  });
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +21,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("name");
-    setUser({ token: null, role: null, name: null });
+    setUser(null);
   };
 
   return (
