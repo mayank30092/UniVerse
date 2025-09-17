@@ -30,6 +30,7 @@ const eventSchema = new mongoose.Schema(
         participants:[registerationSchema],
         attendance:[attendanceSchema],
         requiresAttendance:{type:Boolean, default:false},
+        image:{type:String, trim:true}
     },
     {timestamps:true}
 );

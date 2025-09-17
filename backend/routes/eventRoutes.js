@@ -2,22 +2,42 @@
 import express from "express";
 import mongoose from "mongoose";
 import QRCode from "qrcode";
+import jwt from "jsonwebtoken";
 import Event from "../models/Event.js";
 import { verifyToken, isAdmin, isStudent } from "../middleware/auth.js";
+import { upload } from "../middleware/upload.js";
+import cloudinary from "../middleware/cloudinaryConfig.js";
 
 const router = express.Router();
+
+/**
+ * Helper function to mark attendance
+ */
+async function markAttendance(eventId, userId) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error("Event not found");
+
+  const participant = event.participants.find(p => p.user.toString() === userId);
+  if (!participant) throw new Error("Not registered for this event");
+
+  if (event.attendance.some(a => a.user.toString() === userId)) {
+    throw new Error("Attendance already marked");
+  }
+
+  event.attendance.push({ user: userId });
+  participant.attended = true;
+  await event.save();
+  return event;
+}
 
 /**
  * @route   POST /api/events
  * @desc    Admin creates a new event
  * @access  Admin only
  */
-router.post("/", verifyToken, isAdmin, async (req, res) => {
-  console.log("Create Event Body:", req.body);
-  console.log("User:", req.user);
-
+router.post("/", verifyToken, isAdmin, upload.single("image"), async (req, res) => {
   try {
-    const { title, description, date,time, venue,requiresAttendance } = req.body;
+    const { title, description, date, time, venue, requiresAttendance } = req.body;
 
     const event = await Event.create({
       title,
@@ -27,6 +47,7 @@ router.post("/", verifyToken, isAdmin, async (req, res) => {
       venue,
       requiresAttendance: !!requiresAttendance,
       createdBy: req.user.id,
+      image: req.file?.path, // Cloudinary URL
     });
 
     res.status(201).json({
@@ -68,9 +89,7 @@ router.get("/:id", async (req, res) => {
       .populate("participants", "name email");
 
     if (!event)
-      return res
-        .status(404)
-        .json({ success: false, message: "Event not found" });
+      return res.status(404).json({ success: false, message: "Event not found" });
 
     res.json({ success: true, data: event });
   } catch (error) {
@@ -83,20 +102,30 @@ router.get("/:id", async (req, res) => {
  * @desc    Admin updates event
  * @access  Admin only
  */
-router.put("/:id", verifyToken, isAdmin, async (req, res) => {
+router.put("/:id", verifyToken, isAdmin, upload.single("image"), async (req, res) => {
   try {
-    const { title, description, date,time, venue,requiresAttendance } = req.body;
+    const { title, description, date, time, venue, requiresAttendance } = req.body;
+    const event = await Event.findById(req.params.id);
 
-    const event = await Event.findByIdAndUpdate(
-      req.params.id,
-      { title, description, date,time, venue,requiresAttendance: !!requiresAttendance },
-      { new: true, runValidators: true }
-    );
+    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
 
-    if (!event)
-      return res
-        .status(404)
-        .json({ success: false, message: "Event not found" });
+    // If a new image is uploaded, delete the old one from Cloudinary (optional)
+    if (req.file && event.image) {
+      // Extract public_id from URL
+      const publicId = event.image.split("/").pop().split(".")[0];
+      await cloudinary.uploader.destroy(`events/${publicId}`);
+      event.image = req.file.path;
+    }
+
+    // Update other fields
+    event.title = title ?? event.title;
+    event.description = description ?? event.description;
+    event.date = date ?? event.date;
+    event.time = time ?? event.time;
+    event.venue = venue ?? event.venue;
+    event.requiresAttendance = requiresAttendance !== undefined ? !!requiresAttendance : event.requiresAttendance;
+
+    await event.save();
 
     res.json({ success: true, message: "Event updated successfully", data: event });
   } catch (error) {
@@ -112,11 +141,8 @@ router.put("/:id", verifyToken, isAdmin, async (req, res) => {
 router.delete("/:id", verifyToken, isAdmin, async (req, res) => {
   try {
     const event = await Event.findByIdAndDelete(req.params.id);
-
     if (!event)
-      return res
-        .status(404)
-        .json({ success: false, message: "Event not found" });
+      return res.status(404).json({ success: false, message: "Event not found" });
 
     res.json({ success: true, message: "Event deleted successfully" });
   } catch (error) {
@@ -132,30 +158,22 @@ router.delete("/:id", verifyToken, isAdmin, async (req, res) => {
 router.post("/:id/register", verifyToken, isStudent, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
-    if (!event)
-      return res.status(404).json({ success: false, message: "Event not found" });
+    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
 
     let eventDateTime = new Date(event.date);
     if (event.time) {
       const [hours, minutes] = event.time.split(":").map(Number);
-      eventDateTime.setHours(hours);
-      eventDateTime.setMinutes(minutes);
+      eventDateTime.setHours(hours, minutes);
     }
 
-    // Prevent registration for past events
-    if (eventDateTime < new Date()) {
+    if (eventDateTime < new Date())
       return res.status(400).json({ success: false, message: "Event already passed" });
-    }
 
-    // Initialize participants array if missing
     event.participants = event.participants || [];
-
-    // Prevent duplicate registration
     const userId = req.user.id;
     if (event.participants.some(p => p.user.toString() === userId))
       return res.status(400).json({ success: false, message: "Already registered" });
 
-    // Push a participant object
     event.participants.push({
       user: new mongoose.Types.ObjectId(userId),
       name: req.user.name,
@@ -164,75 +182,23 @@ router.post("/:id/register", verifyToken, isStudent, async (req, res) => {
 
     await event.save();
 
-    res.json({
-      success: true,
-      message: "Registered successfully",
-      data: event,
-    });
+    res.json({ success: true, message: "Registered successfully", data: event });
   } catch (error) {
-    console.error("Registration error:", error);
     res.status(500).json({ message: error.message });
   }
 });
 
 /**
  * @route   POST /api/events/:id/attendance
- * @desc    Mark attendance for a student (via QR code scan)
+ * @desc    Mark attendance for a student
  * @access  Student only
  */
 router.post("/:id/attendance", verifyToken, isStudent, async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
-    if (!event) return res.status(404).json({ message: "Event not found" });
-
-    if (!event.requiresAttendance) {
-      return res.status(400).json({ message: "This event does not require attendance" });
-    }
-
-    const userId = req.user.id;
-    const now = new Date();
-    const eventDate = new Date(event.date);
-
-    // ✅ Restrict to same calendar day
-    if (eventDate.toDateString() !== now.toDateString()) {
-      return res.status(400).json({ message: "Attendance can only be marked on event day" });
-    }
-
-    // ✅ Optional ±2h window if event.time exists
-    if (event.time) {
-      const [hours, minutes] = event.time.split(":").map(Number);
-      const eventStart = new Date(eventDate);
-      eventStart.setHours(hours, minutes || 0, 0);
-
-      const windowStart = new Date(eventStart.getTime() - 2 * 60 * 60 * 1000);
-      const windowEnd = new Date(eventStart.getTime() + 2 * 60 * 60 * 1000);
-
-      if (now < windowStart || now > windowEnd) {
-        return res.status(400).json({ message: "Attendance window closed" });
-      }
-    }
-
-    // Check registration
-    const participant = event.participants.find(
-      (p) => p.user.toString() === userId
-    );
-    if (!participant) {
-      return res.status(400).json({ message: "You are not registered for this event" });
-    }
-
-    // Prevent duplicate attendance
-    if (event.attendance.some((a) => a.user.toString() === userId)) {
-      return res.status(400).json({ message: "Attendance already marked" });
-    }
-
-    // Mark attendance
-    event.attendance.push({ user: userId });
-    participant.attended = true;
-    await event.save();
-
-    res.json({ success: true, message: "Attendance marked successfully" });
+    const event = await markAttendance(req.params.id, req.user.id);
+    res.json({ success: true, message: "Attendance marked successfully", data: event });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -241,30 +207,21 @@ router.post("/:id/attendance", verifyToken, isStudent, async (req, res) => {
  * @desc    Generate QR code for event attendance
  * @access  Admin only
  */
-router.get("/:id/attendance-qrcode",verifyToken,isAdmin,async(req,res)=>{
+router.get("/:id/attendance-qrcode", verifyToken, isAdmin, async (req, res) => {
   try {
-    const event  = await Event.findById(req.params.id);
-    if(!event) return res.status(404).json({ message: "Event not found" });
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    if (!event.requiresAttendance) return res.status(400).json({ message: "This event does not require attendance" });
 
-    if (!event.requiresAttendance) {
-      return res.status(400).json({ message: "This event does not require attendance" });
-    }
-
-     const qrToken = jwt.sign(
-      { eventId: event._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "10m" }
-    );
-
-    const attendanceUrl =`${process.env.FRONTEND_URL}/scan-attendance/${event._id}`;
-
+    const qrToken = jwt.sign({ eventId: event._id }, process.env.JWT_SECRET, { expiresIn: "10m" });
+    const attendanceUrl = `${process.env.FRONTEND_URL}/scan-attendance/${event._id}`;
     const qrCodeDataURL = await QRCode.toDataURL(attendanceUrl);
-    res.json({success:true,qrCode:qrCodeDataURL});
+
+    res.json({ success: true, qrCode: qrCodeDataURL });
   } catch (error) {
-      console.error("QR Code generation error:", error);
     res.status(500).json({ message: error.message });
   }
-})
+});
 
 /**
  * @route   POST /api/attendance/scan
@@ -275,14 +232,11 @@ router.post("/scan", verifyToken, isStudent, async (req, res) => {
   try {
     const { qrToken } = req.body;
     const decoded = jwt.verify(qrToken, process.env.JWT_SECRET);
-    req.params.id = decoded.eventId; // inject eventId
-    // Reuse existing logic
-    return router.handle(req, res);
+    const event = await markAttendance(decoded.eventId, req.user.id);
+    res.json({ success: true, message: "Attendance marked successfully", data: event });
   } catch (error) {
-    return res.status(400).json({ message: "Invalid or expired QR code" });
+    res.status(400).json({ message: error.message || "Invalid or expired QR code" });
   }
-  
 });
-
 
 export default router;

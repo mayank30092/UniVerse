@@ -1,10 +1,10 @@
 export default function Footer() {
   return (
-    <footer className="w-full shadow-inner -mt-7 bg-white">
-      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8 text-gray-600">
+    <footer className="w-full shadow-inner -mt-7 bg-blue-600">
+      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8 text-white">
         {/* About Section */}
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-800">UniVerse</h2>
+          <h2 className="text-lg font-semibold mb-3">UniVerse</h2>
           <p className="text-sm leading-6">
             UniVerse is your one-stop platform for managing and attending
             university events, simplifying attendance tracking and
@@ -14,9 +14,7 @@ export default function Footer() {
 
         {/* Quick Links */}
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-800">
-            Quick Links
-          </h2>
+          <h2 className="text-lg font-semibold mb-3">Quick Links</h2>
           <ul className="space-y-2 text-sm">
             <li>
               <a href="/" className="hover:text-blue-600 transition">
@@ -43,9 +41,7 @@ export default function Footer() {
 
         {/* Resources */}
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-800">
-            Resources
-          </h2>
+          <h2 className="text-lg font-semibold mb-3">Resources</h2>
           <ul className="space-y-2 text-sm">
             <li>
               <a href="#" className="hover:text-blue-600 transition">
@@ -67,7 +63,7 @@ export default function Footer() {
 
         {/* Contact Section */}
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-800">Contact</h2>
+          <h2 className="text-lg font-semibold mb-3">Contact</h2>
           <p className="text-sm">Email: mayankmittal3009@gmail.com</p>
           <p className="text-sm">Phone: +91 9873490275</p>
           <div className="flex gap-4 mt-3">
@@ -97,12 +93,11 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-gray-300 mt-6">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+      <div className="border-t border-gray-300 mt-6 text-white">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center text-sm">
           <p>© 2025 UniVerse. All rights reserved.</p>
           <p className="mt-2 md:mt-0">
-            Built with ❤️ by{" "}
-            <span className="font-medium text-gray-700">Team UniVerse</span>
+            Built with ❤️ by <span className="font-medium">Team UniVerse</span>
           </p>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Navbar() {
@@ -12,55 +12,86 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-blue-700 text-white px-6 py-5 flex justify-between items-center shadow">
-      <Link to="/" className="text-2xl font-bold">
-        Universe
-      </Link>
-      <div className="flex gap-4 items-center">
-        <Link to="/" className="hover:text-gray-200 transition font-medium">
-          Home
-        </Link>
-        <Link
-          to="/about"
-          className="hover:text-gray-200 transition font-medium"
-        >
-          About Us
-        </Link>
-        <Link
-          to="/contact"
-          className="hover:text-gray-200 transition font-medium"
-        >
-          Contact
-        </Link>
-        {user?.role === "student" && (
-          <Link to="/student" className="hover:underline">
-            Student Dashboard
-          </Link>
-        )}
-        {user?.role === "admin" && (
-          <Link to="/admin" className="hover:underline">
-            Admin Dashboard
-          </Link>
-        )}
-        {!user && (
-          <>
-            <Link to="/login" className="hover:underline">
-              Login
-            </Link>
-            <Link to="/register" className="hover:underline">
-              Register
-            </Link>
-          </>
-        )}
-        {user && (
-          <button
-            onClick={handleLogout}
-            className="bg-white text-blue-600 font-medium px-3 py-1 rounded-lg hover:bg-gray-100"
+    <div className="w-full px-6">
+      <nav className="bg-blue-600/95 text-white px-12 py-4 flex justify-between items-center rounded-4xl shadow-xl max-w-5xl mx-auto fixed top-4 left-1/2 transform -translate-x-1/2 z-50 gap-16 mt-4">
+        <NavLink to="/" className="text-2xl font-bold mr-24">
+          Uni<i>Verse</i>
+        </NavLink>
+        <div className="flex gap-6 items-center">
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `font-medium transition hover:text-gray-200 ${
+                isActive ? "underline underline-offset-5" : ""
+              }`
+            }
           >
-            Logout
-          </button>
-        )}
-      </div>
-    </nav>
+            Home
+          </NavLink>
+          <NavLink
+            to="/about"
+            className={({ isActive }) =>
+              `font-medium transition hover:text-gray-200 ${
+                isActive ? "underline underline-offset-4" : ""
+              }`
+            }
+          >
+            About Us
+          </NavLink>
+          <NavLink
+            to="/contact"
+            className={({ isActive }) =>
+              `font-medium transition hover:text-gray-200 ${
+                isActive ? "underline underline-offset-4" : ""
+              }`
+            }
+          >
+            Contact
+          </NavLink>
+          {user?.role === "student" && (
+            <NavLink
+              to="/student"
+              className={({ isActive }) =>
+                `font-medium transition hover:text-gray-200 ${
+                  isActive ? "underline underline-offset-4" : ""
+                }`
+              }
+            >
+              Student Dashboard
+            </NavLink>
+          )}
+          {user?.role === "admin" && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `font-medium transition hover:text-gray-200 ${
+                  isActive ? "underline underline-offset-4" : ""
+                }`
+              }
+            >
+              Admin Dashboard
+            </NavLink>
+          )}
+          {!user && (
+            <>
+              <NavLink
+                to="/login"
+                className="hover:underline border border-white px-4 py-2 bg-gray-100 text-blue-600 font-bold rounded-2xl"
+              >
+                SignIn
+              </NavLink>
+            </>
+          )}
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="bg-white text-blue-600 font-medium px-3 py-1 rounded-lg hover:bg-gray-100"
+            >
+              Logout
+            </button>
+          )}
+        </div>
+      </nav>
+    </div>
   );
 }

@@ -18,9 +18,9 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-20 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-20 px-6 mt-16">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-10">
-        <h1 className="text-4xl font-extrabold text-blue-700 mb-6 text-center">
+        <h1 className="text-4xl font-extrabold text-blue-600 mb-6 text-center">
           Contact Us
         </h1>
         <p className="text-gray-600 mb-8 text-center">
@@ -77,7 +77,7 @@ export default function Contact() {
 
           {/* Contact Info */}
           <div className="md:flex-1 mt-10 md:mt-0">
-            <h2 className="text-2xl font-bold text-blue-700 mb-4">
+            <h2 className="text-2xl font-bold text-blue-600 mb-4">
               Our Office
             </h2>
             <p className="text-gray-600 mb-2">UniVerse HQ</p>
@@ -87,7 +87,7 @@ export default function Contact() {
             </p>
             <p className="text-gray-600 mb-2">Phone: +91 98734 90275</p>
 
-            <h2 className="text-2xl font-bold text-blue-700 mt-8 mb-4">
+            <h2 className="text-2xl font-bold text-blue-600 mt-8 mb-4">
               Follow Us
             </h2>
             <div className="flex gap-4">

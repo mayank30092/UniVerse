@@ -17,6 +17,8 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [requiresAttendance, setRequiresAttendance] = useState(false);
   const [qrCode, setQrCode] = useState(null);
+  const [image, setImage] = useState(null); // file
+  const [preview, setPreview] = useState(""); // preview URL
 
   // Fetch events
   useEffect(() => {
@@ -35,33 +37,51 @@ export default function AdminDashboard() {
     }
   };
 
+  // Handle file input change
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
   const handleCreateOrUpdate = async (e) => {
     e.preventDefault();
     try {
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("date", form.date);
+      formData.append("time", form.time);
+      formData.append("venue", form.venue);
+      formData.append("requiresAttendance", requiresAttendance);
+
+      if (image) {
+        formData.append("image", image); // 👈 must match multer's field name
+      }
+
       if (editingEvent) {
-        // Update existing event
-        await axios.put(
-          `/api/events/${editingEvent._id}`,
-          { ...form, requiresAttendance },
-          {
-            headers: { Authorization: `Bearer ${user.token}` },
-          }
-        );
+        // Update event
+        await axios.put(`/api/events/${editingEvent._id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
         setEditingEvent(null);
       } else {
         // Create new event
-        await axios.post(
-          "/api/events",
-          { ...form, requiresAttendance },
-          {
-            headers: { Authorization: `Bearer ${user.token}` },
-          }
-        );
+        await axios.post("/api/events", formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
       }
 
-      setForm({ title: "", description: "", date: "", venue: "" });
+      setForm({ title: "", description: "", date: "", time: "", venue: "" });
       setRequiresAttendance(false);
-      setEditingEvent(null);
+      setImage(null);
+      setPreview("");
       fetchEvents();
     } catch (error) {
       console.error("Error creating/updating event:", error);
@@ -173,6 +193,20 @@ export default function AdminDashboard() {
               />
               Requires Attendance
             </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="border rounded-lg px-4 py-2 w-full"
+              required
+            />
+            {preview && (
+              <img
+                src={preview}
+                alt="Preview"
+                className="w-64 h-40 object-cover mt-2"
+              />
+            )}
             <button
               type="submit"
               className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -193,6 +227,13 @@ export default function AdminDashboard() {
                 key={event._id}
                 className="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition"
               >
+                {event.image && (
+                  <img
+                    src={event.image}
+                    alt="Event Poster"
+                    className="w-full h-48 object-cover rounded-lg mb-4"
+                  />
+                )}
                 <h4 className="text-xl font-bold text-blue-600 mb-2">
                   {event.title}
                 </h4>

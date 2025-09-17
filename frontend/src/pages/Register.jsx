@@ -45,7 +45,7 @@ export default function Register() {
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4 mt-16">
       <div className="w-full mx-w-lg md:max-w-xl bg-white rounded-3xl shadow-2xl p-10 md:p-16">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">
           Register for UniVerse
