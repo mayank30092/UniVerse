@@ -17,22 +17,22 @@ export default function Footer() {
           <h2 className="text-lg font-semibold mb-3">Quick Links</h2>
           <ul className="space-y-2 text-sm">
             <li>
-              <a href="/" className="hover:text-blue-600 transition">
+              <a href="/" className="hover:text-gray-300 transition">
                 Home
               </a>
             </li>
             <li>
-              <a href="/login" className="hover:text-blue-600 transition">
+              <a href="/login" className="hover:text-gray-300 transition">
                 Login
               </a>
             </li>
             <li>
-              <a href="/about" className="hover:text-blue-600 transition">
+              <a href="/about" className="hover:text-gray-300 transition">
                 About Us
               </a>
             </li>
             <li>
-              <a href="/contact" className="hover:text-blue-600 transition">
+              <a href="/contact" className="hover:text-gray-300 transition">
                 Contact
               </a>
             </li>
@@ -44,17 +44,17 @@ export default function Footer() {
           <h2 className="text-lg font-semibold mb-3">Resources</h2>
           <ul className="space-y-2 text-sm">
             <li>
-              <a href="#" className="hover:text-blue-600 transition">
+              <a href="#" className="hover:text-gray-300 transition">
                 Privacy Policy
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-blue-600 transition">
+              <a href="#" className="hover:text-gray-300 transition">
                 Terms of Service
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-blue-600 transition">
+              <a href="#" className="hover:text-gray-300 transition">
                 Help Center
               </a>
             </li>
@@ -70,21 +70,21 @@ export default function Footer() {
             <a
               href="https://github.com/mayank30092"
               target="_blank"
-              className="hover:text-blue-600 transition text-sm"
+              className="hover:text-gray-300 transition text-sm"
             >
               GitHub
             </a>
             <a
               href="https://linkedin.com/in/mayankmittal30092"
               target="_blank"
-              className="hover:text-blue-600 transition text-sm"
+              className="hover:text-gray-300 transition text-sm"
             >
               LinkedIn
             </a>
             <a
               href="https://instagram.com/mayank_mittal3/"
               target="_blank"
-              className="hover:text-blue-600 transition text-sm"
+              className="hover:text-gray-300 transition text-sm"
             >
               Instagram
             </a>

@@ -11,6 +11,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import EventDetails from "./pages/EventDetails";
 import ScanAttendance from "./pages/ScanAttendance";
 import Contact from "./pages/Contact";
+import CreateEvent from "./pages/CreateEvent";
 
 function App() {
   return (
@@ -71,6 +72,16 @@ function App() {
           <ProtectedAdminRoute>
             <Layout>
               <AdminDashboard />
+            </Layout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/create"
+        element={
+          <ProtectedAdminRoute>
+            <Layout>
+              <CreateEvent />
             </Layout>
           </ProtectedAdminRoute>
         }

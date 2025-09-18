@@ -1,3 +1,5 @@
+import dotenv from "dotenv";//for credentials
+dotenv.config();
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({

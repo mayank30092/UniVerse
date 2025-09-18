@@ -77,6 +77,13 @@ export default function StudentDashboard() {
                 key={ev._id}
                 className="bg-white shadow-md rounded-xl p-7 hover:sahdow-lg transition"
               >
+                {ev.image && (
+                  <img
+                    src={ev.image}
+                    alt="Event Poster"
+                    className="w-full h-48 object-cover rounded-lg mb-4"
+                  />
+                )}
                 <h3 className="text-xl font-bold text-blue-600 mb-2">
                   {ev.title}
                 </h3>

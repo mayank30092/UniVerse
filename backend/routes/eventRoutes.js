@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import Event from "../models/Event.js";
 import { verifyToken, isAdmin, isStudent } from "../middleware/auth.js";
 import { upload } from "../middleware/upload.js";
-import cloudinary from "../middleware/cloudinaryConfig.js";
+import cloudinary from "../config/cloudinaryConfig.js";
 
 const router = express.Router();
 
@@ -121,7 +121,7 @@ router.put("/:id", verifyToken, isAdmin, upload.single("image"), async (req, res
     event.title = title ?? event.title;
     event.description = description ?? event.description;
     event.date = date ?? event.date;
-    event.time = time ?? event.time;
+    event.time = time && time.trim() !== "" ? time : event.time || "10:00 AM";
     event.venue = venue ?? event.venue;
     event.requiresAttendance = requiresAttendance !== undefined ? !!requiresAttendance : event.requiresAttendance;
 

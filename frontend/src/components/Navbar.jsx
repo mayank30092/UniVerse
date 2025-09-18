@@ -13,7 +13,7 @@ export default function Navbar() {
 
   return (
     <div className="w-full px-6">
-      <nav className="bg-blue-600/95 text-white px-12 py-4 flex justify-between items-center rounded-4xl shadow-xl max-w-5xl mx-auto fixed top-4 left-1/2 transform -translate-x-1/2 z-50 gap-16 mt-4">
+      <nav className="bg-blue-600/95 text-white px-10 py-4 flex justify-between items-center rounded-3xl shadow-xl max-w-5xl mx-auto fixed top-4 left-1/2 transform -translate-x-1/2 z-50 gap-16 mt-4">
         <NavLink to="/" className="text-2xl font-bold mr-24">
           Uni<i>Verse</i>
         </NavLink>
@@ -31,12 +31,13 @@ export default function Navbar() {
           <NavLink
             to="/about"
             className={({ isActive }) =>
-              `font-medium transition hover:text-gray-200 ${
+              `inline-flex items-center font-medium transition hover:text-gray-200 ${
                 isActive ? "underline underline-offset-4" : ""
               }`
             }
           >
-            About Us
+            <span>About</span>&nbsp;
+            <span>us</span>
           </NavLink>
           <NavLink
             to="/contact"
@@ -52,24 +53,26 @@ export default function Navbar() {
             <NavLink
               to="/student"
               className={({ isActive }) =>
-                `font-medium transition hover:text-gray-200 ${
+                `inline-flex items-center font-medium transition hover:text-gray-200 ${
                   isActive ? "underline underline-offset-4" : ""
                 }`
               }
             >
-              Student Dashboard
+              <span>Student </span>&nbsp;
+              <span>Dashboard</span>
             </NavLink>
           )}
           {user?.role === "admin" && (
             <NavLink
               to="/admin"
               className={({ isActive }) =>
-                `font-medium transition hover:text-gray-200 ${
+                `inline-flex items-center font-medium transition hover:text-gray-200 ${
                   isActive ? "underline underline-offset-4" : ""
                 }`
               }
             >
-              Admin Dashboard
+              <span>Admin </span>&nbsp;
+              <span>Dashboard</span>
             </NavLink>
           )}
           {!user && (
