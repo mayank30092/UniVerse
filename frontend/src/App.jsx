@@ -59,11 +59,11 @@ function App() {
       <Route
         path="/student"
         element={
-          <ProtectedStudentRoute>
-            <Layout>
+          <Layout>
+            <ProtectedStudentRoute>
               <StudentDashboard />
-            </Layout>
-          </ProtectedStudentRoute>
+            </ProtectedStudentRoute>
+          </Layout>
         }
       />
       <Route

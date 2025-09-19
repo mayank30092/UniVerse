@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
-
+import { downloadQRCodePDF } from "../utils/downloadQRCode";
 export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -223,29 +223,36 @@ export default function EventDetails() {
           <div className="flex gap-2 mb-6">
             <button
               onClick={() => setEditing(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer"
             >
               Edit
             </button>
             <button
               onClick={handleDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg"
+              className="px-4 py-2 bg-red-600 text-white rounded-lg cursor-pointer"
             >
               Delete
             </button>
             {event.requiresAttendance && (
               <button
                 onClick={handleGenerateQRCode}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer"
               >
                 Generate QR Code
               </button>
             )}
           </div>
 
-          {/* QR Code Display */}
           {qrCode && (
-            <img src={qrCode} alt="QR Code" className="w-64 h-64 mt-8 mb-8" />
+            <div className="mt-8 mb-8 flex flex-col items-center">
+              <img src={qrCode} alt="QR Code" className="w-64 h-64 mb-4" />
+              <button
+                onClick={() => downloadQRCodePDF(qrCode, event.title)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer"
+              >
+                Download QR Code as PDF
+              </button>
+            </div>
           )}
 
           {/* Participants */}

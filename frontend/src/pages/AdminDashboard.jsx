@@ -34,7 +34,7 @@ export default function AdminDashboard() {
         <div className="mb-8 border-2 border-gray-400 rounded-lg w-56 p-8 bg-white shadow-md hover:shadow-lg transition">
           <button
             onClick={() => navigate("/admin/create")}
-            className="text-black font-bold text-xl"
+            className="text-black font-bold text-xl cursor-pointer"
           >
             Register New Event
           </button>
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
             events.map((event) => (
               <div
                 key={event._id}
-                className="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition hover:bg-gray-100"
+                className="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition hover:bg-gray-100 cursor-pointer"
                 onClick={() => navigate(`/admin/events/${event._id}`)}
               >
                 {event.image && (

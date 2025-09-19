@@ -88,7 +88,7 @@ export default function Navbar() {
           {user && (
             <button
               onClick={handleLogout}
-              className="bg-white text-blue-600 font-medium px-3 py-1 rounded-lg hover:bg-gray-100"
+              className="bg-white text-blue-600 font-medium px-3 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
             >
               Logout
             </button>
