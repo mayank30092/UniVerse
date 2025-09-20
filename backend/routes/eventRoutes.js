@@ -77,6 +77,35 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /api/events/registered
+router.get("/registered", verifyToken, isStudent, async (req, res) => {
+  try {
+    console.log("req.user:", req.user);
+
+    if (!req.user || !req.user.id) {
+      return res.status(400).json({ success: false, message: "User ID missing" });
+    }
+
+    // Convert string to ObjectId safely
+    let userId;
+    try {
+      userId = mongoose.Types.ObjectId(req.user.id);
+    } catch (err) {
+      return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
+
+    // Fetch events where this user is a participant
+    const events = await Event.find({ "participants.user": userId }).sort({ date: 1 });
+
+    console.log("Registered events:", events); // DEBUG
+
+    res.json({ success: true, data: events });
+  } catch (err) {
+    console.error("Error in /registered:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch registered events" });
+  }
+});
+
 /**
  * @route   GET /api/events/:id
  * @desc    Get single event details
@@ -175,7 +204,7 @@ router.post("/:id/register", verifyToken, isStudent, async (req, res) => {
       return res.status(400).json({ success: false, message: "Already registered" });
 
     event.participants.push({
-      user: new mongoose.Types.ObjectId(userId),
+      user: mongoose.Types.ObjectId(userId),
       name: req.user.name,
       email: req.user.email
     });

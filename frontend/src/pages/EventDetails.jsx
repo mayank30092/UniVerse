@@ -78,6 +78,7 @@ export default function EventDetails() {
           "Content-Type": "multipart/form-data",
         },
       });
+
       alert("Event updated!");
       setEditing(false);
       // Refresh event data

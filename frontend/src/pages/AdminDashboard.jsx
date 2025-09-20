@@ -31,10 +31,10 @@ export default function AdminDashboard() {
         <h2 className="text-3xl font-bold text-gray-800 mb-6">
           Admin Dashboard
         </h2>
-        <div className="mb-8 border-2 border-gray-400 rounded-lg w-56 p-8 bg-white shadow-md hover:shadow-lg transition">
+        <div className="mb-8 rounded-lg w-56 p-8 bg-blue-600 shadow-md hover:shadow-lg transition hover:bg-blue-500">
           <button
             onClick={() => navigate("/admin/create")}
-            className="text-black font-bold text-xl cursor-pointer"
+            className="text-white font-bold text-xl cursor-pointer"
           >
             Register New Event
           </button>

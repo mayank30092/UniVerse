@@ -12,6 +12,7 @@ import EventDetails from "./pages/EventDetails";
 import ScanAttendance from "./pages/ScanAttendance";
 import Contact from "./pages/Contact";
 import CreateEvent from "./pages/CreateEvent";
+import RegisteredEvents from "./pages/registeredEvents";
 
 function App() {
   return (
@@ -63,6 +64,14 @@ function App() {
             <ProtectedStudentRoute>
               <StudentDashboard />
             </ProtectedStudentRoute>
+          </Layout>
+        }
+      />
+      <Route
+        path="/student/registered"
+        element={
+          <Layout>
+            <RegisteredEvents />
           </Layout>
         }
       />

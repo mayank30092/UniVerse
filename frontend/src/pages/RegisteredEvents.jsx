@@ -1,9 +1,9 @@
-import { useEffect, useState, useContext } from "react";
 import axios from "axios";
+import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-export default function StudentDashboard() {
+export default function RegisteredEvents() {
   const { user } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,10 +11,11 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     axios
-      .get("/api/events", {
+      .get("/api/events/registered", {
         headers: { Authorization: `Bearer ${user?.token}` },
       })
       .then((res) => {
+        console.log("Registered events:", res.data.data);
         setEvents(res.data.data);
         setLoading(false);
       })
@@ -24,39 +25,10 @@ export default function StudentDashboard() {
       });
   }, [user]);
 
-  const handleRegister = async (id) => {
-    try {
-      const res = await axios.post(
-        `/api/events/${id}/register`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${user?.token}` },
-        }
-      );
-      alert(res.data.message);
-
-      setEvents((prev) =>
-        prev.map((ev) =>
-          ev._id === id
-            ? {
-                ...ev,
-                participants: [
-                  ...ev.participants,
-                  { _id: user.id, name: user.name },
-                ],
-              }
-            : ev
-        )
-      );
-    } catch (err) {
-      alert(err.response?.data?.message || "Error occured");
-    }
-  };
-
   if (loading)
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-lg text-gray-600 animate-pulse">Loading events...</p>
+        <p className="text-lg text-gray-600 animate-pulse">Loading...</p>
       </div>
     );
 
@@ -64,30 +36,25 @@ export default function StudentDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-8 mt-24">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">
-          Welcome, {user?.name}{" "}
+          Your Registered Events
         </h1>
-
-        <div className="mb-8 rounded-lg w-56 p-8 bg-blue-600 shadow-md hover:shadow-lg transition hover:bg-blue-500">
-          <button
-            onClick={() => navigate("/student/registered")}
-            className="text-white font-bold text-xl cursor-pointer"
-          >
-            Show Registered Events
-          </button>
-        </div>
-
-        <h2 className="text-2xl font-semibold mb-4 text-gray-700">
-          Available Events
-        </h2>
+        <button
+          onClick={() => navigate("/student")}
+          className="mb-6 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+        >
+          Back to All Events
+        </button>
 
         {events.length === 0 ? (
-          <p className="text-gray-600">No events available</p>
+          <p className="text-gray-600">
+            You haven’t registered for any events yet.
+          </p>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {events.map((ev) => (
               <div
                 key={ev._id}
-                className="bg-white shadow-md rounded-xl p-7 hover:sahdow-lg transition"
+                className="bg-white shadow-md rounded-xl p-7 hover:shadow-lg transition"
               >
                 {ev.image && (
                   <img
@@ -108,18 +75,6 @@ export default function StudentDashboard() {
                   <strong>Time:</strong> {ev.time || "Not specified"}{" "}
                   <strong>Venue:</strong> {ev.venue}
                 </p>
-                <p className="text-sm text-gray-500 mb-2">
-                  Created by:{ev.createdBy?.name}
-                </p>
-                <p className="text-sm text-gray-500 mb-6">
-                  Participants:{ev.participants?.length || 0}
-                </p>
-                <button
-                  onClick={() => handleRegister(ev._id)}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
-                >
-                  Register
-                </button>
               </div>
             ))}
           </div>
