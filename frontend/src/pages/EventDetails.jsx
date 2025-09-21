@@ -221,30 +221,32 @@ export default function EventDetails() {
           </div>
 
           {/* Event Actions */}
-          <div className="flex gap-2 mb-6">
-            <button
-              onClick={() => setEditing(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer"
-            >
-              Edit
-            </button>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg cursor-pointer"
-            >
-              Delete
-            </button>
-            {event.requiresAttendance && (
+          {user.role === "admin" && (
+            <div className="flex gap-2 mb-6">
               <button
-                onClick={handleGenerateQRCode}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer"
+                onClick={() => setEditing(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer"
               >
-                Generate QR Code
+                Edit
               </button>
-            )}
-          </div>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg cursor-pointer"
+              >
+                Delete
+              </button>
+              {event.requiresAttendance && (
+                <button
+                  onClick={handleGenerateQRCode}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer"
+                >
+                  Generate QR Code
+                </button>
+              )}
+            </div>
+          )}
 
-          {qrCode && (
+          {user.role === "admin" && qrCode && (
             <div className="mt-8 mb-8 flex flex-col items-center">
               <img src={qrCode} alt="QR Code" className="w-64 h-64 mb-4" />
               <button
@@ -257,43 +259,59 @@ export default function EventDetails() {
           )}
 
           {/* Participants */}
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4">Participants</h3>
-            {event.participants?.length ? (
-              <div className="overflow-x-auto">
-                <table className="w-full border border-gray-300 rounded-lg">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="p-2 border">Name</th>
-                      <th className="p-2 border">Email</th>
-                      <th className="p-2 border">Registered At</th>
-                      <th className="p-2 border">Attendance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {event.participants.map((p) => (
-                      <tr key={p.user?._id || p.user}>
-                        <td className="p-2 border">{p.name || p.user?.name}</td>
-                        <td className="p-2 border">
-                          {p.email || p.user?.email}
-                        </td>
-                        <td className="p-2 border">
-                          {p.registeredAt
-                            ? new Date(p.registeredAt).toLocaleString()
-                            : "—"}
-                        </td>
-                        <td className="p-2 border text-center">
-                          {p.attended ? "✅ Present" : "❌ Absent"}
-                        </td>
+          {user.role === "admin" && (
+            <div className="bg-white shadow-md rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4">Participants</h3>
+              {event.participants?.length ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border border-gray-300 rounded-lg">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="p-2 border">Name</th>
+                        <th className="p-2 border">Email</th>
+                        <th className="p-2 border">Registered At</th>
+                        <th className="p-2 border">Attendance</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-gray-500">No participants registered yet.</p>
+                    </thead>
+                    <tbody>
+                      {event.participants.map((p) => (
+                        <tr key={p.user?._id || p.user}>
+                          <td className="p-2 border">
+                            {p.name || p.user?.name}
+                          </td>
+                          <td className="p-2 border">
+                            {p.email || p.user?.email}
+                          </td>
+                          <td className="p-2 border">
+                            {p.registeredAt
+                              ? new Date(p.registeredAt).toLocaleString()
+                              : "—"}
+                          </td>
+                          <td className="p-2 border text-center">
+                            {p.attended ? "✅ Present" : "❌ Absent"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-500">No participants registered yet.</p>
+              )}
+            </div>
+          )}
+
+          {/*Scan Attendance */}
+          {user.role === "student" &&
+            event.requiresAttendance &&
+            !event.participants?.find((p) => p.user === user.id)?.attended && (
+              <button
+                onClick={() => navigate(`/student/events/${event._id}/scan`)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer"
+              >
+                Scan QR Code
+              </button>
             )}
-          </div>
         </>
       )}
     </div>

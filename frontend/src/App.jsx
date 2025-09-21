@@ -13,6 +13,7 @@ import ScanAttendance from "./pages/ScanAttendance";
 import Contact from "./pages/Contact";
 import CreateEvent from "./pages/CreateEvent";
 import RegisteredEvents from "./pages/registeredEvents";
+import QRScanner from "./components/QRScanner";
 
 function App() {
   return (
@@ -75,6 +76,23 @@ function App() {
           </Layout>
         }
       />
+      <Route
+        path="/student/events/:id"
+        element={
+          <Layout>
+            <EventDetails />
+          </Layout>
+        }
+      />
+      <Route
+        path="/student/events/:id/scan"
+        element={
+          <Layout>
+            <QRScanner />
+          </Layout>
+        }
+      />
+
       <Route
         path="/admin"
         element={

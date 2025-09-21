@@ -80,31 +80,49 @@ router.get("/", async (req, res) => {
 // GET /api/events/registered
 router.get("/registered", verifyToken, isStudent, async (req, res) => {
   try {
+    // Step 1: Verify req.user exists
     console.log("req.user:", req.user);
-
     if (!req.user || !req.user.id) {
+      console.error("User ID missing in req.user");
       return res.status(400).json({ success: false, message: "User ID missing" });
     }
 
-    // Convert string to ObjectId safely
+    // Step 2: Convert string ID to ObjectId safely
     let userId;
     try {
-      userId = mongoose.Types.ObjectId(req.user.id);
+      console.log("Raw ID:", req.user.id, "Type:", typeof req.user.id);
+      if (mongoose.Types.ObjectId.isValid(req.user.id)) {
+        userId =new  mongoose.Types.ObjectId(req.user.id);
+        console.log("Converted to ObjectId:", userId);
+      } else {
+        console.warn("ID not valid ObjectId, using string fallback");
+        userId = req.user.id;
+      }
     } catch (err) {
+      console.error("Error converting ID:", err);
       return res.status(400).json({ success: false, message: "Invalid user ID" });
     }
 
-    // Fetch events where this user is a participant
-    const events = await Event.find({ "participants.user": userId }).sort({ date: 1 });
+    // Step 3: Query the Event collection
+    const events = await Event.find({ "participants.user": userId })
+                              .sort({ date: 1 })
+                              .populate("participants.user", "name email");
 
-    console.log("Registered events:", events); // DEBUG
+    // Step 4: Log results for debugging
+    if (!events || events.length === 0) {
+      console.log("No registered events found for user:", userId);
+    } else {
+      console.log("Registered events:", events);
+    }
 
+    // Step 5: Return results
     res.json({ success: true, data: events });
   } catch (err) {
-    console.error("Error in /registered:", err);
+    console.error("Error in /registered route:", err);
     res.status(500).json({ success: false, message: "Failed to fetch registered events" });
   }
 });
+
 
 /**
  * @route   GET /api/events/:id
@@ -223,14 +241,48 @@ router.post("/:id/register", verifyToken, isStudent, async (req, res) => {
  * @access  Student only
  */
 router.post("/:id/attendance", verifyToken, isStudent, async (req, res) => {
+  const eventId = req.params.id;
+  const userId = req.user.id;
+
   try {
-    const event = await markAttendance(req.params.id, req.user.id);
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      throw new Error("Invalid event ID");
+    }
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    // Check if user is registered
+    const participant = event.participants.find(
+      (p) => p.user.toString() === userId
+    );
+
+    if (!participant) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User not registered for this event" });
+    }
+
+    // Check if attendance already marked
+    if (participant.attended) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Attendance already marked" });
+    }
+
+    // Mark attendance
+    participant.attended = true;
+    await event.save();
+
     res.json({ success: true, message: "Attendance marked successfully", data: event });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error("Attendance error:", error);
+    res.status(400).json({ success: false, message: error.message });
   }
 });
-
 /**
  * @route   GET /api/events/:id/attendance-qrcode
  * @desc    Generate QR code for event attendance

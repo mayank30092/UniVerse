@@ -40,7 +40,7 @@ export default function RegisteredEvents() {
         </h1>
         <button
           onClick={() => navigate("/student")}
-          className="mb-6 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+          className="mb-6 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition cursor-pointer"
         >
           Back to All Events
         </button>
@@ -50,11 +50,12 @@ export default function RegisteredEvents() {
             You haven’t registered for any events yet.
           </p>
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 cursor-pointer">
             {events.map((ev) => (
               <div
                 key={ev._id}
                 className="bg-white shadow-md rounded-xl p-7 hover:shadow-lg transition"
+                onClick={() => navigate(`/student/events/${ev._id}`)}
               >
                 {ev.image && (
                   <img
