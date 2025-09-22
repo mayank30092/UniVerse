@@ -81,7 +81,8 @@ export default function Navbar() {
                 to="/login"
                 className="hover:underline border border-white px-4 py-2 bg-gray-100 text-blue-600 font-bold rounded-2xl"
               >
-                SignIn
+                <span>Log</span>&nbsp;
+                <span>in</span>
               </NavLink>
             </>
           )}
@@ -90,7 +91,8 @@ export default function Navbar() {
               onClick={handleLogout}
               className="bg-white text-blue-600 font-medium px-3 py-1 rounded-lg hover:bg-gray-100 cursor-pointer"
             >
-              Logout
+              <span>Log</span>&nbsp;
+              <span>out</span>
             </button>
           )}
         </div>

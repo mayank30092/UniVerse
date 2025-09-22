@@ -63,7 +63,7 @@ export default function Login() {
             type="submit"
             className="mt-4 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-lg"
           >
-            Login
+            Log in
           </button>
         </form>
         <p className="text-md text-gray-500 mt-6 text-center">

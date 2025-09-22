@@ -301,17 +301,28 @@ export default function EventDetails() {
             </div>
           )}
 
-          {/*Scan Attendance */}
-          {user.role === "student" &&
-            event.requiresAttendance &&
-            !event.participants?.find((p) => p.user === user.id)?.attended && (
-              <button
-                onClick={() => navigate(`/student/events/${event._id}/scan`)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer"
-              >
-                Scan QR Code
-              </button>
-            )}
+          {/* Scan Attendance */}
+
+          {user.role === "student" && event?.requiresAttendance && (
+            <>
+              {event?.participants?.find((p) =>
+                typeof p.user === "string"
+                  ? p.user === user.id
+                  : p.user?._id === user.id
+              )?.attended ? (
+                <p className="px-4 py-2 bg-gray-400 text-white rounded-lg text-center">
+                  You have marked attendance ✅
+                </p>
+              ) : (
+                <button
+                  onClick={() => navigate(`/student/events/${event._id}/scan`)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer"
+                >
+                  Scan QR Code
+                </button>
+              )}
+            </>
+          )}
         </>
       )}
     </div>

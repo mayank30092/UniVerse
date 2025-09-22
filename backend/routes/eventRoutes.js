@@ -79,9 +79,7 @@ router.get("/", async (req, res) => {
 
 // GET /api/events/registered
 router.get("/registered", verifyToken, isStudent, async (req, res) => {
-  try {
-    // Step 1: Verify req.user exists
-    console.log("req.user:", req.user);
+  try{
     if (!req.user || !req.user.id) {
       console.error("User ID missing in req.user");
       return res.status(400).json({ success: false, message: "User ID missing" });
@@ -90,11 +88,8 @@ router.get("/registered", verifyToken, isStudent, async (req, res) => {
     // Step 2: Convert string ID to ObjectId safely
     let userId;
     try {
-      console.log("Raw ID:", req.user.id, "Type:", typeof req.user.id);
       if (mongoose.Types.ObjectId.isValid(req.user.id)) {
         userId =new  mongoose.Types.ObjectId(req.user.id);
-        console.log("Converted to ObjectId:", userId);
-      } else {
         console.warn("ID not valid ObjectId, using string fallback");
         userId = req.user.id;
       }
