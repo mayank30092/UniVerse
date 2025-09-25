@@ -17,15 +17,15 @@ export default function About() {
       </section>
 
       {/* Mission Section */}
-      <section className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
+      <section className="bg-gradient-to-r from-blue-20 to-purple-100 py-20">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-16">
           <img
             src="/src/assets/undraw_young-man-avatar_wgbd.svg"
             alt="Mission"
             className="md:w-1/3"
           />
           <div className="md:w-1/2">
-            <h2 className="text-3xl font-bold text-blue-600">Our Mission</h2>
+            <h2 className="text-4xl font-bold text-gray-700">Our Mission</h2>
             <p className="mt-4 text-gray-600">
               Our mission is to provide a user-friendly platform for managing
               campus events, tracking student participation, and simplifying
@@ -40,7 +40,7 @@ export default function About() {
       {/* Team / Values Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center text-blue-600 mb-12">
+          <h2 className="text-3xl font-bold text-center text-gray-600 mb-12">
             Our Values
           </h2>
           <div className="grid md:grid-cols-3 gap-8">

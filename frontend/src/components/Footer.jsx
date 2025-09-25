@@ -1,6 +1,7 @@
 export default function Footer() {
   return (
     <footer className="w-full shadow-inner -mt-7 bg-blue-600">
+      {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8 text-white">
         {/* About Section */}
         <div>

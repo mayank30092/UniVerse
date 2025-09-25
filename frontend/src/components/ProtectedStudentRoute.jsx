@@ -14,5 +14,5 @@ export default function ProtectedStudentRoute({ children }) {
   if (user.role !== "student") {
     return <Navigate to="/" replace />;
   }
-  return children;
+  return children; //component or page inside ProtectedStudentRoute eg: <ProtectedStudentRoute><StudentDashboard/></ProtectedStudentRoute>
 }

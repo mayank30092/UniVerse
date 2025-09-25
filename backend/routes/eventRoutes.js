@@ -24,8 +24,9 @@ async function markAttendance(eventId, userId) {
     throw new Error("Attendance already marked");
   }
 
-  event.attendance.push({ user: userId });
   participant.attended = true;
+  participant.certificateIssued = false;
+  event.attendance.push({ user: userId });
   await event.save();
   return event;
 }

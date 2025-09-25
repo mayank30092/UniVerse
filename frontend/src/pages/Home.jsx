@@ -65,7 +65,7 @@ export default function Home() {
       </section>
 
       {/* Section 1: Students (Image Left, Text Right) */}
-      <section className="bg-gradient-to-r from-indigo-50 via-white to-indigo-50 py-24">
+      <section className="bg-gradient-to-r from-blue-50 to-purple-100py-24">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-20 md:gap-32">
           {/* Image with subtle float animation */}
           <img
@@ -108,7 +108,7 @@ export default function Home() {
       </section>
 
       {/* Section 2: Admins (Text Left, Image Right) */}
-      <section className="bg-gradient-to-r from-blue-50 via-white to-blue-50 py-24">
+      <section className="bg-gradient-to-r from-blue-50 to-purple-100 py-24">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-20 md:gap-32">
           {/* Text container with card style */}
           <div className="md:w-1/2 bg-white rounded-2xl shadow-xl p-8">

@@ -5,7 +5,8 @@ const registerationSchema = new mongoose.Schema({
     name: {type: String},
     email: {type: String},
     attended:{type:Boolean, default:false},
-    registeredAt: { type: Date, default: Date.now }
+    registeredAt: { type: Date, default: Date.now },
+    certificateIssued: { type: Boolean, default: false },
 })
 
 const attendanceSchema = new Schema({
