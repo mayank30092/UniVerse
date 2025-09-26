@@ -27,10 +27,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8 mt-24">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">
+        Welcome, {user?.name} !
+      </h1>
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">
-          Admin Dashboard
-        </h2>
         <div className="mb-8 rounded-lg w-56 p-8 bg-blue-600 shadow-md hover:shadow-lg transition hover:bg-blue-500">
           <button
             onClick={() => navigate("/admin/create")}

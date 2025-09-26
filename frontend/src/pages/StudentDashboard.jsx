@@ -64,7 +64,7 @@ export default function StudentDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-8 mt-24">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">
-          Welcome, {user?.name}{" "}
+          Welcome, {user?.name} !
         </h1>
 
         <div className="mb-8 rounded-lg w-56 p-8 bg-blue-600 shadow-md hover:shadow-lg transition hover:bg-blue-500">

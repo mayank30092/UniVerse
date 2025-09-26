@@ -4,9 +4,10 @@ import mongoose from "mongoose";
 import QRCode from "qrcode";
 import jwt from "jsonwebtoken";
 import Event from "../models/Event.js";
-import { verifyToken, isAdmin, isStudent } from "../middleware/auth.js";
+import { verifyToken,authorizeRoles } from "../middleware/auth.js";
 import { upload } from "../middleware/upload.js";
-import cloudinary from "../config/cloudinaryConfig.js";
+import cloudinary from "../config/cloudinary.js";
+import { generateAndUploadCertificate } from "../utils/certificateGenerator.js";
 
 const router = express.Router();
 
@@ -36,9 +37,9 @@ async function markAttendance(eventId, userId) {
  * @desc    Admin creates a new event
  * @access  Admin only
  */
-router.post("/", verifyToken, isAdmin, upload.single("image"), async (req, res) => {
+router.post("/", verifyToken, authorizeRoles("admin"), upload("events").single("image"), async (req, res) => {
   try {
-    const { title, description, date, time, venue, requiresAttendance } = req.body;
+    const { title, description, date, time, venue, requiresAttendance } = req.body; 
 
     const event = await Event.create({
       title,
@@ -79,7 +80,7 @@ router.get("/", async (req, res) => {
 });
 
 // GET /api/events/registered
-router.get("/registered", verifyToken, isStudent, async (req, res) => {
+router.get("/registered", verifyToken, authorizeRoles("student"), async (req, res) => {
   try{
     if (!req.user || !req.user.id) {
       console.error("User ID missing in req.user");
@@ -145,7 +146,7 @@ router.get("/:id", async (req, res) => {
  * @desc    Admin updates event
  * @access  Admin only
  */
-router.put("/:id", verifyToken, isAdmin, upload.single("image"), async (req, res) => {
+router.put("/:id", verifyToken, authorizeRoles("admin"), upload("events").single("image"), async (req, res) => {
   try {
     const { title, description, date, time, venue, requiresAttendance } = req.body;
     const event = await Event.findById(req.params.id);
@@ -181,7 +182,7 @@ router.put("/:id", verifyToken, isAdmin, upload.single("image"), async (req, res
  * @desc    Admin deletes event
  * @access  Admin only
  */
-router.delete("/:id", verifyToken, isAdmin, async (req, res) => {
+router.delete("/:id", verifyToken, authorizeRoles("admin"), async (req, res) => {
   try {
     const event = await Event.findByIdAndDelete(req.params.id);
     if (!event)
@@ -198,7 +199,7 @@ router.delete("/:id", verifyToken, isAdmin, async (req, res) => {
  * @desc    Student registers for an event
  * @access  Student only
  */
-router.post("/:id/register", verifyToken, isStudent, async (req, res) => {
+router.post("/:id/register", verifyToken, authorizeRoles("student"), async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ success: false, message: "Event not found" });
@@ -236,7 +237,7 @@ router.post("/:id/register", verifyToken, isStudent, async (req, res) => {
  * @desc    Mark attendance for a student
  * @access  Student only
  */
-router.post("/:id/attendance", verifyToken, isStudent, async (req, res) => {
+router.post("/:id/attendance", verifyToken, authorizeRoles("student"), async (req, res) => {
   const eventId = req.params.id;
   const userId = req.user.id;
 
@@ -284,7 +285,7 @@ router.post("/:id/attendance", verifyToken, isStudent, async (req, res) => {
  * @desc    Generate QR code for event attendance
  * @access  Admin only
  */
-router.get("/:id/attendance-qrcode", verifyToken, isAdmin, async (req, res) => {
+router.get("/:id/attendance-qrcode", verifyToken, authorizeRoles("admin"), async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: "Event not found" });
@@ -305,7 +306,7 @@ router.get("/:id/attendance-qrcode", verifyToken, isAdmin, async (req, res) => {
  * @desc    Verify QR token and mark attendance
  * @access  Student only
  */
-router.post("/scan", verifyToken, isStudent, async (req, res) => {
+router.post("/scan", verifyToken, authorizeRoles("student"), async (req, res) => {
   try {
     const { qrToken } = req.body;
     const decoded = jwt.verify(qrToken, process.env.JWT_SECRET);
@@ -315,5 +316,50 @@ router.post("/scan", verifyToken, isStudent, async (req, res) => {
     res.status(400).json({ message: error.message || "Invalid or expired QR code" });
   }
 });
+
+// POST /api/events/:id/certificates/generate
+router.post("/:id/certificates/generate", verifyToken, authorizeRoles("admin"), async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    console.log("🔹 Event found:", event.title, "with participants:", event.participants.length);
+
+    for (const participant of event.participants) {
+  console.log("➡️ Checking participant:", participant.name, "| attended:", participant.attended, "| issued:", participant.certificateIssued);
+
+  // force generation (ignoring condition for now)
+  const url = await generateAndUploadCertificate(event, participant);
+
+  console.log("📎 Certificate URL returned:", url);
+
+  if (url) {
+    participant.certificateUrl = url;
+    participant.certificateIssued = true;
+    console.log("✅ Saved URL into participant:", participant.name, url);
+  } else {
+    console.log("❌ No URL generated for:", participant.name);
+  }
+}
+
+
+    console.log("📦 Before save:", event.participants.map(p => p.certificateUrl));
+
+    await event.save();
+
+    console.log("💾 After save:", event.participants.map(p => p.certificateUrl));
+ // Return the updated event with participant user info populated
+    const updatedEvent = await Event.findById(event._id)
+      .populate({ path: "participants.user", select: "name email" });
+
+    res.json({ success: true, data: updatedEvent, message: "Certificates generated successfully" });
+  } catch (err) {
+    console.error("❌ Certificate generation error:", err);
+    res.status(500).json({ success: false, message: "Failed to generate certificates" });
+  }
+});
+
 
 export default router;

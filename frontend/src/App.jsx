@@ -14,6 +14,7 @@ import Contact from "./pages/Contact";
 import CreateEvent from "./pages/CreateEvent";
 import RegisteredEvents from "./pages/registeredEvents";
 import QRScanner from "./components/QRScanner";
+import StudentEventDetails from "./pages/studentEventDetail";
 
 function App() {
   return (
@@ -80,7 +81,7 @@ function App() {
         path="/student/events/:id"
         element={
           <Layout>
-            <EventDetails />
+            <StudentEventDetails />
           </Layout>
         }
       />
