@@ -123,6 +123,17 @@ function App() {
         }
       />
       <Route
+        path="/admin/events/:id/edit"
+        element={
+          <ProtectedAdminRoute>
+            <Layout>
+              <CreateEvent />
+            </Layout>
+          </ProtectedAdminRoute>
+        }
+      />
+
+      <Route
         path="/scan-attendance/:eventId"
         element={
           <Layout>

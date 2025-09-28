@@ -11,12 +11,14 @@ export const AuthProvider = ({ children }) => {
     const name = localStorage.getItem("name");
 
     if (token && role && name) {
-      setUser({ token, role, name });
+      const decoded = parseJwt(token);
+      const _id = decoded.id || decoded._id || decoded.userId;
+      setUser({ token, role, name, _id });
     }
+
     setLoading(false);
   }, []);
 
-  //logout
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -30,3 +32,21 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+// Helper function
+function parseJwt(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error("Invalid token:", e);
+    return {};
+  }
+}

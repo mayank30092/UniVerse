@@ -41,6 +41,10 @@ router.post("/", verifyToken, authorizeRoles("admin"), upload("events").single("
   try {
     const { title, description, date, time, venue, requiresAttendance } = req.body; 
 
+    if (!title || !date || !venue) {
+        return res.status(400).json({ message: "Title, date, and venue are required" });
+    }
+
     const event = await Event.create({
       title,
       description,
@@ -48,7 +52,7 @@ router.post("/", verifyToken, authorizeRoles("admin"), upload("events").single("
       time,
       venue,
       requiresAttendance: !!requiresAttendance,
-      createdBy: req.user.id,
+      createdBy: req.user._id,
       image: req.file?.path, // Cloudinary URL
     });
 
@@ -58,6 +62,7 @@ router.post("/", verifyToken, authorizeRoles("admin"), upload("events").single("
       data: event,
     });
   } catch (error) {
+    console.error("Create event error:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -82,7 +87,7 @@ router.get("/", async (req, res) => {
 // GET /api/events/registered
 router.get("/registered", verifyToken, authorizeRoles("student"), async (req, res) => {
   try{
-    if (!req.user || !req.user.id) {
+    if (!req.user || !req.user._id) {
       console.error("User ID missing in req.user");
       return res.status(400).json({ success: false, message: "User ID missing" });
     }
@@ -90,10 +95,11 @@ router.get("/registered", verifyToken, authorizeRoles("student"), async (req, re
     // Step 2: Convert string ID to ObjectId safely
     let userId;
     try {
-      if (mongoose.Types.ObjectId.isValid(req.user.id)) {
-        userId =new  mongoose.Types.ObjectId(req.user.id);
+      if (mongoose.Types.ObjectId.isValid(req.user._id)) {
+        userId =new  mongoose.Types.ObjectId(req.user._id);
+      }else{
         console.warn("ID not valid ObjectId, using string fallback");
-        userId = req.user.id;
+        userId = req.user._id || req.user.id;
       }
     } catch (err) {
       console.error("Error converting ID:", err);
@@ -219,7 +225,7 @@ router.post("/:id/register", verifyToken, authorizeRoles("student"), async (req,
       return res.status(400).json({ success: false, message: "Already registered" });
 
     event.participants.push({
-      user: mongoose.Types.ObjectId(userId),
+      user:new mongoose.Types.ObjectId(userId),
       name: req.user.name,
       email: req.user.email
     });

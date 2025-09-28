@@ -10,6 +10,7 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user?.token) return; // add this check
     axios
       .get("/api/events", {
         headers: { Authorization: `Bearer ${user?.token}` },
@@ -42,7 +43,13 @@ export default function StudentDashboard() {
                 ...ev,
                 participants: [
                   ...ev.participants,
-                  { _id: user.id, name: user.name },
+                  {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    attended: false,
+                    certificateIssued: false,
+                  },
                 ],
               }
             : ev
@@ -87,7 +94,7 @@ export default function StudentDashboard() {
             {events.map((ev) => (
               <div
                 key={ev._id}
-                className="bg-white shadow-md rounded-xl p-7 hover:sahdow-lg transition"
+                className="bg-white shadow-md rounded-xl p-7 hover:shadow-lg transition"
               >
                 {ev.image && (
                   <img

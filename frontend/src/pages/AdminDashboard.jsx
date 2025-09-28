@@ -63,12 +63,17 @@ export default function AdminDashboard() {
                 <h4 className="text-xl font-bold text-blue-600 mb-2">
                   {event.title}
                 </h4>
-                <p className="text-gray-700">{event.description}</p>
+                <ul className="list-disc pl-5 text-gray-600 mb-4">
+                  {event.description.split("\n").map((point, index) => (
+                    <li key={index}>{point}</li>
+                  ))}
+                </ul>
+
                 <p className="text-sm text-gray-500 mt-2 mb-3">
                   {new Date(event.date).toDateString()} | {event.time} |{" "}
                   {event.venue}
                 </p>
-                {event.requiresAttendance && (
+                {Boolean(event.requiresAttendance) && (
                   <p className="text-sm text-red-500 mt-1 mb-2">
                     (Attendance Required)
                   </p>

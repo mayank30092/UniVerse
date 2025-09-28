@@ -20,13 +20,13 @@ export default function AdminEventDetails() {
     venue: "",
   });
   const [requiresAttendance, setRequiresAttendance] = useState(false);
-  const [image, setImage] = useState(null);
   const [preview, setPreview] = useState("");
   const [qrCode, setQrCode] = useState(null);
   const [generatingCertificates, setGeneratingCertificates] = useState(false);
   const [generatingQRCode, setGeneratingQRCode] = useState(false);
 
   // Fetch event details
+
   useEffect(() => {
     if (!user?.token) return;
 
@@ -36,6 +36,8 @@ export default function AdminEventDetails() {
           headers: { Authorization: `Bearer ${user.token}` },
         });
         const evt = res.data.data || res.data;
+        evt.requiresAttendance =
+          evt.requiresAttendance === true || evt.requiresAttendance === "true";
         setEvent(evt);
         setForm({
           title: evt.title,
@@ -44,7 +46,7 @@ export default function AdminEventDetails() {
           time: evt.time,
           venue: evt.venue,
         });
-        setRequiresAttendance(evt.requiresAttendance || false);
+        setRequiresAttendance(evt.requiresAttendance);
         setPreview(evt.image);
       } catch (err) {
         console.error(err);
@@ -115,6 +117,106 @@ export default function AdminEventDetails() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 mt-24 mb-24">
+      {editing && (
+        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+          <h3 className="text-xl font-semibold mb-4">Edit Event</h3>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const formData = new FormData();
+                formData.append("title", form.title);
+                formData.append("description", form.description);
+                formData.append("date", form.date);
+                formData.append("time", form.time);
+                formData.append("venue", form.venue);
+                formData.append("requiresAttendance", requiresAttendance);
+                if (preview) formData.append("image", preview);
+
+                await axios.put(`/api/events/${id}`, formData, {
+                  headers: {
+                    Authorization: `Bearer ${user.token}`,
+                    "Content-Type": "multipart/form-data",
+                  },
+                });
+
+                alert("Event updated successfully!");
+                setEditing(false);
+
+                // Refetch event
+                const res = await axios.get(`/api/events/${id}`, {
+                  headers: { Authorization: `Bearer ${user.token}` },
+                });
+                setEvent(res.data.data || res.data);
+              } catch (err) {
+                console.error("Update error:", err);
+                alert("Failed to update event");
+              }
+            }}
+            className="grid gap-4"
+          >
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="border rounded-lg px-4 py-2"
+              required
+            />
+            <textarea
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+              className="border rounded-lg px-4 py-2"
+              required
+            />
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              className="border rounded-lg px-4 py-2"
+              required
+            />
+            <input
+              type="time"
+              value={form.time}
+              onChange={(e) => setForm({ ...form, time: e.target.value })}
+              className="border rounded-lg px-4 py-2"
+              required
+            />
+            <input
+              type="text"
+              value={form.venue}
+              onChange={(e) => setForm({ ...form, venue: e.target.value })}
+              className="border rounded-lg px-4 py-2"
+              required
+            />
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={requiresAttendance}
+                onChange={(e) => setRequiresAttendance(e.target.checked)}
+              />
+              Requires Attendance
+            </div>
+
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Update Event
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+            >
+              Cancel
+            </button>
+          </form>
+        </div>
+      )}
+
       {event.image && (
         <img
           src={event.image}
@@ -125,7 +227,12 @@ export default function AdminEventDetails() {
 
       <div className="bg-white shadow-md rounded-lg p-6 mb-6">
         <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
-        <p className="text-gray-600 mb-4">{event.description}</p>
+        <ul className="list-disc pl-5 text-gray-600 mb-4">
+          {event.description.split("\n").map((point, index) => (
+            <li key={index}>{point}</li>
+          ))}
+        </ul>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
           <p>
             <strong>Date:</strong> {new Date(event.date).toDateString()}
@@ -142,7 +249,7 @@ export default function AdminEventDetails() {
       {/* Admin Actions */}
       <div className="flex gap-2 mb-6">
         <button
-          onClick={() => setEditing(true)}
+          onClick={() => navigate(`/admin/events/${id}/edit`)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg"
         >
           Edit
@@ -162,30 +269,34 @@ export default function AdminEventDetails() {
         </button>
 
         {event.requiresAttendance && (
-          <button
-            onClick={handleGenerateQRCode}
-            disabled={generatingQRCode}
-            className={`px-4 py-2 rounded-lg text-white ${
-              generatingQRCode
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
-          >
-            {generatingQRCode ? "Generating QR..." : "Generate QR Code"}
-          </button>
-        )}
+          <>
+            <button
+              onClick={handleGenerateQRCode}
+              disabled={generatingQRCode}
+              className={`px-4 py-2 rounded-lg text-white ${
+                generatingQRCode
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
+            >
+              {generatingQRCode ? "Generating QR..." : "Generate QR Code"}
+            </button>
 
-        <button
-          onClick={handleGenerateCertificates}
-          disabled={generatingCertificates}
-          className={`px-4 py-2 rounded-lg text-white ${
-            generatingCertificates
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gray-600 hover:bg-gray-800"
-          }`}
-        >
-          {generatingCertificates ? "Generating..." : "Generate Certificates"}
-        </button>
+            <button
+              onClick={handleGenerateCertificates}
+              disabled={generatingCertificates}
+              className={`px-4 py-2 rounded-lg text-white ${
+                generatingCertificates
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-gray-600 hover:bg-gray-800"
+              }`}
+            >
+              {generatingCertificates
+                ? "Generating..."
+                : "Generate Certificates"}
+            </button>
+          </>
+        )}
       </div>
 
       {qrCode && (

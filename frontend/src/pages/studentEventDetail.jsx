@@ -30,13 +30,27 @@ export default function StudentEventDetails() {
     }
   };
 
+  // 1. Initial fetch
   useEffect(() => {
     fetchEvent();
-
-    // Poll every 5 seconds to check if certificate is available
-    const interval = setInterval(fetchEvent, 100000);
-    return () => clearInterval(interval);
   }, [id, user]);
+
+  // 2. Poll until certificate is ready
+  useEffect(() => {
+    if (!event) return;
+
+    const participant = event.participants?.find(
+      (p) => (p.user?._id || p.user) === user._id
+    );
+
+    // Already has certificate → no need to poll
+    if (participant?.certificateUrl) return;
+
+    // Otherwise, poll every 5s
+    const interval = setInterval(fetchEvent, 5000);
+
+    return () => clearInterval(interval);
+  }, [event, user]);
 
   if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (!event) return <p className="text-center mt-10">Event not found.</p>;
@@ -44,21 +58,14 @@ export default function StudentEventDetails() {
   // Find logged-in student's participant entry
   const participant = event.participants?.find((p) => {
     if (p.user && typeof p.user === "object" && p.user._id) {
-      console.log("Participant User ID:", p.user._id.toString());
       return p.user._id === user._id;
     }
-    // If p.user is a string (ObjectId as string)
-    console.log("Participant User ID (string):", p.user);
     return p.user === user._id;
   });
 
-  // Safe access to certificate info
   const certificateUrl = participant?.certificateUrl;
-  console.log("Certificate URL:", certificateUrl);
   const certificateIssued = participant?.certificateIssued;
-  console.log("Certificate Issued:", certificateIssued);
   const attended = participant?.attended;
-  console.log("Attended:", attended);
 
   return (
     <div className="max-w-4xl mx-auto p-6 mt-24 mb-24">
@@ -88,7 +95,7 @@ export default function StudentEventDetails() {
 
       {/* Attendance */}
       {event.requiresAttendance && (
-        <>
+        <div className="mb-6">
           {attended ? (
             <p className="px-4 py-2 bg-gray-400 text-white rounded-lg text-center">
               You have marked attendance ✅
@@ -96,12 +103,12 @@ export default function StudentEventDetails() {
           ) : (
             <button
               onClick={() => navigate(`/student/events/${event._id}/scan`)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer mb-4"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer mb"
             >
               Scan QR Code
             </button>
           )}
-        </>
+        </div>
       )}
 
       {/* Certificate Download */}
@@ -111,7 +118,6 @@ export default function StudentEventDetails() {
           target="_blank"
           rel="noopener noreferrer"
           className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-800 cursor-pointer"
-          download
         >
           Download Certificate
         </a>

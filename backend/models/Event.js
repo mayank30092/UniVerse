@@ -7,6 +7,7 @@ const registerationSchema = new mongoose.Schema({
     attended:{type:Boolean, default:false},
     registeredAt: { type: Date, default: Date.now },
     certificateIssued: { type: Boolean, default: false },
+    certificateUrl: { type: String, default: "" },
 })
 
 const attendanceSchema = new Schema({
