@@ -10,19 +10,16 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user?.token) return; // add this check
+    if (!user?.token) return;
     axios
       .get("/api/events", {
         headers: { Authorization: `Bearer ${user?.token}` },
       })
       .then((res) => {
-        setEvents(res.data.data);
-        setLoading(false);
+        setEvents(res.data.data || []);
       })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   }, [user]);
 
   const handleRegister = async (id) => {
@@ -30,9 +27,7 @@ export default function StudentDashboard() {
       const res = await axios.post(
         `/api/events/${id}/register`,
         {},
-        {
-          headers: { Authorization: `Bearer ${user?.token}` },
-        }
+        { headers: { Authorization: `Bearer ${user?.token}` } }
       );
       alert(res.data.message);
 
@@ -42,7 +37,7 @@ export default function StudentDashboard() {
             ? {
                 ...ev,
                 participants: [
-                  ...ev.participants,
+                  ...(ev.participants || []),
                   {
                     _id: user._id,
                     name: user.name,
@@ -56,7 +51,7 @@ export default function StudentDashboard() {
         )
       );
     } catch (err) {
-      alert(err.response?.data?.message || "Error occured");
+      alert(err.response?.data?.message || "Error occurred");
     }
   };
 
@@ -68,16 +63,16 @@ export default function StudentDashboard() {
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-8 mt-24">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">
-          Welcome, {user?.name} !
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-6 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800">
+          Welcome, {user?.name}!
         </h1>
 
-        <div className="mb-8 rounded-lg w-56 p-8 bg-blue-600 shadow-md hover:shadow-lg transition hover:bg-blue-500">
+        <div className="mb-8">
           <button
             onClick={() => navigate("/student/registered")}
-            className="text-white font-bold text-xl cursor-pointer"
+            className="w-full md:w-64 mx-auto md:mx-0 p-4 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition"
           >
             Show Registered Events
           </button>
@@ -90,45 +85,58 @@ export default function StudentDashboard() {
         {events.length === 0 ? (
           <p className="text-gray-600">No events available</p>
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
-            {events.map((ev) => (
-              <div
-                key={ev._id}
-                className="bg-white shadow-md rounded-xl p-7 hover:shadow-lg transition"
-              >
-                {ev.image && (
-                  <img
-                    src={ev.image}
-                    alt="Event Poster"
-                    className="w-full h-48 object-cover rounded-lg mb-4"
-                  />
-                )}
-                <h3 className="text-xl font-bold text-blue-600 mb-2">
-                  {ev.title}
-                </h3>
-                <p className="text-gray-700 mb-3">{ev.description}</p>
-                <p className="text-sm text-gray-700 mb-1">
-                  <strong>Date:</strong>{" "}
-                  {new Date(ev.date).toLocaleDateString()}
-                </p>
-                <p className="text-sm text-gray-600 mb-1">
-                  <strong>Time:</strong> {ev.time || "Not specified"}{" "}
-                  <strong>Venue:</strong> {ev.venue}
-                </p>
-                <p className="text-sm text-gray-500 mb-2">
-                  Created by:{ev.createdBy?.name}
-                </p>
-                <p className="text-sm text-gray-500 mb-6">
-                  Participants:{ev.participants?.length || 0}
-                </p>
-                <button
-                  onClick={() => handleRegister(ev._id)}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.map((ev) => {
+              const isRegistered = ev.participants?.some(
+                (p) => p._id === user._id
+              );
+
+              return (
+                <div
+                  key={ev._id}
+                  className="bg-white shadow-lg rounded-2xl p-6 md:p-8 hover:shadow-2xl transition flex flex-col"
                 >
-                  Register
-                </button>
-              </div>
-            ))}
+                  {ev.image && (
+                    <img
+                      src={ev.image}
+                      alt="Event Poster"
+                      className="w-full h-48 md:h-56 object-cover rounded-xl mb-4"
+                    />
+                  )}
+                  <h3 className="text-xl md:text-2xl font-bold text-blue-600 mb-2">
+                    {ev.title}
+                  </h3>
+                  <p className="text-gray-700 mb-3 line-clamp-3">
+                    {ev.description}
+                  </p>
+                  <p className="text-sm text-gray-700 mb-1">
+                    <strong>Date:</strong>{" "}
+                    {new Date(ev.date).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    <strong>Time:</strong> {ev.time || "Not specified"}{" "}
+                    <strong>Venue:</strong> {ev.venue}
+                  </p>
+                  <p className="text-sm text-gray-500 mb-1">
+                    Created by: {ev.createdBy?.name || "Admin"}
+                  </p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Participants: {ev.participants?.length || 0}
+                  </p>
+                  <button
+                    onClick={() => handleRegister(ev._id)}
+                    disabled={isRegistered}
+                    className={`mt-auto w-full py-3 rounded-xl text-lg font-semibold transition ${
+                      isRegistered
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                  >
+                    {isRegistered ? "Registered" : "Register"}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

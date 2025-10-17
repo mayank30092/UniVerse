@@ -7,6 +7,7 @@ export default function CreateEvent() {
   const { user } = useContext(AuthContext);
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -19,13 +20,13 @@ export default function CreateEvent() {
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const isEditMode = !!id;
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
-
-  const isEditMode = !!id;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,29 +43,25 @@ export default function CreateEvent() {
       formData.append("requiresAttendance", requiresAttendance);
       if (image) formData.append("image", image);
 
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      };
+
       if (isEditMode) {
-        // Update existing event
-        await axios.put(`/api/events/${id}`, formData, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        alert("Event updated successfully!");
+        await axios.put(`/api/events/${id}`, formData, config);
+        alert("✅ Event updated successfully!");
       } else {
-        // Create new event
-        await axios.post("/api/events", formData, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        alert("Event created successfully!");
+        await axios.post("/api/events", formData, config);
+        alert("✅ Event created successfully!");
       }
 
-      navigate("/admin"); // redirect after save
+      navigate("/admin");
     } catch (err) {
       console.error("Error saving event:", err);
+      alert("❌ Failed to save event. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -97,78 +94,88 @@ export default function CreateEvent() {
   }, [id, user]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 mt-16">
-      <div className="max-w-2xl mx-auto bg-white p-12 rounded-xl shadow-md">
-        <h2 className="text-2xl font-bold mb-4">
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-2xl mx-auto bg-white p-10 rounded-xl shadow-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">
           {isEditMode ? "Edit Event" : "Create Event"}
         </h2>
 
-        <form onSubmit={handleSubmit} className="grid gap-4">
+        <form onSubmit={handleSubmit} className="grid gap-5">
           <input
             type="text"
-            placeholder="Title"
+            placeholder="Event Title"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="border rounded-lg px-4 py-4"
+            className="border rounded-lg px-4 py-3"
             required
           />
+
           <textarea
-            placeholder="Description"
+            placeholder="Event Description"
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="border rounded-lg px-4 py-4"
+            className="border rounded-lg px-4 py-3"
             required
           />
-          <input
-            type="date"
-            value={form.date || new Date().toISOString().slice(0, 10)}
-            onChange={(e) => setForm({ ...form, date: e.target.value })}
-            className="border rounded-lg px-4 py-4"
-            required
-          />
-          <input
-            type="time"
-            value={form.time || "10:00"}
-            onChange={(e) => setForm({ ...form, time: e.target.value })}
-            className="border rounded-lg px-4 py-4"
-            required
-          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              className="border rounded-lg px-4 py-3"
+              required
+            />
+            <input
+              type="time"
+              value={form.time}
+              onChange={(e) => setForm({ ...form, time: e.target.value })}
+              className="border rounded-lg px-4 py-3"
+              required
+            />
+          </div>
+
           <input
             type="text"
             placeholder="Venue"
             value={form.venue}
             onChange={(e) => setForm({ ...form, venue: e.target.value })}
-            className="border rounded-lg px-4 py-4"
+            className="border rounded-lg px-4 py-3"
             required
           />
-          <div className="flex items-center gap-2">
+
+          <label className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={requiresAttendance}
               onChange={(e) => setRequiresAttendance(e.target.checked)}
             />
             Requires Attendance
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="border rounded-lg px-4 py-4"
-          />
-          {preview && (
-            <img
-              src={preview}
-              alt="Preview"
-              className="w-64 h-40 object-cover mt-2"
+          </label>
+
+          <div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="border rounded-lg px-4 py-3 w-full"
             />
-          )}
-          <h2 className="text-2xl font-bold mb-4">
-            {isEditMode ? "Edit Event" : "Create Event"}
-          </h2>
+            {preview && (
+              <img
+                src={preview}
+                alt="Preview"
+                className="w-full h-48 object-cover mt-3 rounded-lg"
+              />
+            )}
+          </div>
 
           <button
             type="submit"
-            className="mt-4 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className={`mt-4 px-6 py-3 text-white rounded-lg transition ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
             disabled={loading}
           >
             {loading

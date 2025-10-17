@@ -25,8 +25,6 @@ export default function AdminEventDetails() {
   const [generatingCertificates, setGeneratingCertificates] = useState(false);
   const [generatingQRCode, setGeneratingQRCode] = useState(false);
 
-  // Fetch event details
-
   useEffect(() => {
     if (!user?.token) return;
 
@@ -58,11 +56,9 @@ export default function AdminEventDetails() {
     fetchEvent();
   }, [id, user]);
 
-  // Handle certificate generation
   const handleGenerateCertificates = async () => {
     if (!user?.token) return alert("Not authorized");
     setGeneratingCertificates(true);
-
     try {
       const res = await fetch(
         `/api/events/${event._id}/certificates/generate`,
@@ -82,7 +78,6 @@ export default function AdminEventDetails() {
         return;
       }
 
-      // Fetch updated event with certificate URLs
       const updatedEvent = await axios.get(`/api/events/${id}`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
@@ -96,7 +91,6 @@ export default function AdminEventDetails() {
     }
   };
 
-  // Handle QR code generation
   const handleGenerateQRCode = async () => {
     setGeneratingQRCode(true);
     try {
@@ -116,7 +110,8 @@ export default function AdminEventDetails() {
   if (!event) return <p className="text-center mt-10">Event not found.</p>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 mt-24 mb-24">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 mb-24">
+      {/* Edit Form */}
       {editing && (
         <div className="bg-white shadow-md rounded-lg p-6 mb-6">
           <h3 className="text-xl font-semibold mb-4">Edit Event</h3>
@@ -143,7 +138,6 @@ export default function AdminEventDetails() {
                 alert("Event updated successfully!");
                 setEditing(false);
 
-                // Refetch event
                 const res = await axios.get(`/api/events/${id}`, {
                   headers: { Authorization: `Bearer ${user.token}` },
                 });
@@ -170,20 +164,22 @@ export default function AdminEventDetails() {
               className="border rounded-lg px-4 py-2"
               required
             />
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="border rounded-lg px-4 py-2"
-              required
-            />
-            <input
-              type="time"
-              value={form.time}
-              onChange={(e) => setForm({ ...form, time: e.target.value })}
-              className="border rounded-lg px-4 py-2"
-              required
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                className="border rounded-lg px-4 py-2"
+                required
+              />
+              <input
+                type="time"
+                value={form.time}
+                onChange={(e) => setForm({ ...form, time: e.target.value })}
+                className="border rounded-lg px-4 py-2"
+                required
+              />
+            </div>
             <input
               type="text"
               value={form.venue}
@@ -191,40 +187,53 @@ export default function AdminEventDetails() {
               className="border rounded-lg px-4 py-2"
               required
             />
-            <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={requiresAttendance}
                 onChange={(e) => setRequiresAttendance(e.target.checked)}
               />
               Requires Attendance
+            </label>
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setPreview(URL.createObjectURL(e.target.files[0]))
+                }
+                className="border rounded-lg px-4 py-2 w-full"
+              />
             </div>
-
-            <button
-              type="submit"
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-            >
-              Update Event
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
-            >
-              Cancel
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2 mt-2">
+              <button
+                type="submit"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex-1"
+              >
+                Update Event
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 flex-1"
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       )}
 
+      {/* Event Image */}
       {event.image && (
         <img
           src={event.image}
           alt="Event Poster"
-          className="w-full h-80 object-contain rounded-lg mb-4"
+          className="w-full max-h-96 object-contain rounded-lg mb-4"
         />
       )}
 
+      {/* Event Details */}
       <div className="bg-white shadow-md rounded-lg p-6 mb-6">
         <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
         <ul className="list-disc pl-5 text-gray-600 mb-4">
@@ -232,8 +241,7 @@ export default function AdminEventDetails() {
             <li key={index}>{point}</li>
           ))}
         </ul>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
           <p>
             <strong>Date:</strong> {new Date(event.date).toDateString()}
           </p>
@@ -243,18 +251,21 @@ export default function AdminEventDetails() {
           <p>
             <strong>Venue:</strong> {event.venue}
           </p>
+          <p>
+            <strong>Attendance Required:</strong>{" "}
+            {event.requiresAttendance ? "Yes" : "No"}
+          </p>
         </div>
       </div>
 
       {/* Admin Actions */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-col sm:flex-row gap-2 mb-6 flex-wrap">
         <button
-          onClick={() => navigate(`/admin/events/${id}/edit`)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+          onClick={() => setEditing(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex-1"
         >
           Edit
         </button>
-
         <button
           onClick={async () => {
             if (!window.confirm("Delete event?")) return;
@@ -263,17 +274,16 @@ export default function AdminEventDetails() {
             });
             navigate("/admin");
           }}
-          className="px-4 py-2 bg-red-600 text-white rounded-lg"
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex-1"
         >
           Delete
         </button>
-
         {event.requiresAttendance && (
           <>
             <button
               onClick={handleGenerateQRCode}
               disabled={generatingQRCode}
-              className={`px-4 py-2 rounded-lg text-white ${
+              className={`px-4 py-2 rounded-lg text-white flex-1 ${
                 generatingQRCode
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-green-600 hover:bg-green-700"
@@ -281,11 +291,10 @@ export default function AdminEventDetails() {
             >
               {generatingQRCode ? "Generating QR..." : "Generate QR Code"}
             </button>
-
             <button
               onClick={handleGenerateCertificates}
               disabled={generatingCertificates}
-              className={`px-4 py-2 rounded-lg text-white ${
+              className={`px-4 py-2 rounded-lg text-white flex-1 ${
                 generatingCertificates
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-gray-600 hover:bg-gray-800"
@@ -299,23 +308,24 @@ export default function AdminEventDetails() {
         )}
       </div>
 
+      {/* QR Code */}
       {qrCode && (
-        <div className="mb-8">
-          <img src={qrCode} alt="QR Code" className="w-64 h-64 mb-4" />
+        <div className="mb-8 flex flex-col items-center gap-4">
+          <img src={qrCode} alt="QR Code" className="w-64 h-64" />
           <button
             onClick={() => downloadQRCodePDF(qrCode, event.title)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Download QR Code PDF
           </button>
         </div>
       )}
 
-      {/* Participant Table */}
-      <div className="bg-white shadow-md rounded-lg p-6">
+      {/* Participants Table */}
+      <div className="bg-white shadow-md rounded-lg p-4 overflow-x-auto">
         <h3 className="text-xl font-semibold mb-4">Participants</h3>
         {event.participants?.length ? (
-          <table className="w-full border border-gray-300 rounded-lg">
+          <table className="w-full min-w-max border border-gray-300 rounded-lg table-auto">
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border">Name</th>

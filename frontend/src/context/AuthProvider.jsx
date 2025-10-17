@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     if (token && role && name) {
       const decoded = parseJwt(token);
+      console.log("Decoded token:", decoded);
       const _id = decoded.id || decoded._id || decoded.userId;
       setUser({ token, role, name, _id });
     }
