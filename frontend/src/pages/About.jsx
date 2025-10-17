@@ -1,4 +1,8 @@
 import { Link } from "react-router-dom";
+import missionImg from "../assets/undraw_young-man-avatar_wgbd.svg";
+import teamworkImg from "../assets/undraw_working-together_r43a.svg";
+import innovationImg from "../assets/undraw_got-an-idea_1z3i.svg";
+import commitmentImg from "../assets/undraw_preparation_59f0.svg";
 
 export default function About() {
   return (
@@ -20,7 +24,7 @@ export default function About() {
       <section className="bg-gradient-to-r from-blue-50 to-purple-100 py-20">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-12 md:gap-20">
           <img
-            src="/src/assets/undraw_young-man-avatar_wgbd.svg"
+            src={missionImg}
             alt="Mission"
             className="w-64 sm:w-80 md:w-1/3 rounded-xl shadow-md"
           />
@@ -48,7 +52,7 @@ export default function About() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
             <div className="bg-white p-6 rounded-2xl shadow-lg text-center hover:shadow-xl transition">
               <img
-                src="/src/assets/undraw_working-together_r43a.svg"
+                src={teamworkImg}
                 alt="Teamwork"
                 className="mx-auto mb-6 rounded-lg w-36 sm:w-40 h-36 object-contain"
               />
@@ -63,7 +67,7 @@ export default function About() {
 
             <div className="bg-white p-6 rounded-2xl shadow-lg text-center hover:shadow-xl transition">
               <img
-                src="/src/assets/undraw_got-an-idea_1z3i.svg"
+                src={innovationImg}
                 alt="Innovation"
                 className="mx-auto mb-6 rounded-lg w-36 sm:w-40 h-36 object-contain"
               />
@@ -78,7 +82,7 @@ export default function About() {
 
             <div className="bg-white p-6 rounded-2xl shadow-lg text-center hover:shadow-xl transition">
               <img
-                src="/src/assets/undraw_preparation_59f0.svg"
+                src={commitmentImg}
                 alt="Commitment"
                 className="mx-auto mb-6 rounded-lg w-36 sm:w-40 h-36 object-contain"
               />
