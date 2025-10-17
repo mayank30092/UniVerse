@@ -12,7 +12,7 @@ import EventDetails from "./pages/EventDetails";
 import ScanAttendance from "./pages/ScanAttendance";
 import Contact from "./pages/Contact";
 import CreateEvent from "./pages/CreateEvent";
-import RegisteredEvents from "./pages/registeredEvents";
+import RegisteredEvents from "./pages/RegisteredEvents";
 import QRScanner from "./components/QRScanner";
 import StudentEventDetails from "./pages/studentEventDetail";
 
