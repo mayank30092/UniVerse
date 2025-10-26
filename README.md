@@ -13,6 +13,12 @@
 
 ---
 
+## 🌍 Live Demo
+🚀 Experience UniVerse Live:
+👉 https://universe-ijwi.onrender.com
+
+---
+
 ## 🚀 Features
 - 🔐 **Authentication & Authorization** (JWT-based login/signup, roles: Student/Admin)  
 - 📅 **Event Management** (create, update, delete, and view events)  
