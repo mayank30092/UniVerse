@@ -11,13 +11,14 @@ export const verifyToken = (req, res, next) => {
       token = req.cookies.token;
     }
 
+    
     if (!token) {
       return res.status(401).json({ message: "No token, authorization denied" });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     req.user = {
-      _id: decoded._id || decoded.id,
+      _id: decoded._id || decoded.id || decoded.userId,
       name: decoded.name,
       email: decoded.email,
       role: decoded.role,

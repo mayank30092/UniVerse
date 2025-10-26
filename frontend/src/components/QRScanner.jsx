@@ -1,7 +1,7 @@
-import { BrowserMultiFormatReader } from "@zxing/browser"; //decode qr from video
+import { BrowserMultiFormatReader } from "@zxing/browser";
 import { useEffect, useRef, useState, useContext } from "react";
-import axios from "axios"; // for API requests
-import { useParams, useNavigate } from "react-router-dom"; // useParams: decode from url and useNavigate: routing
+import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 export default function QRScanner() {
@@ -9,93 +9,255 @@ export default function QRScanner() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [result, setResult] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [scanning, setScanning] = useState(false);
   const videoRef = useRef(null);
-  const hasScannedRef = useRef(false); // ✅ prevent multiple scans
-  const codeReaderRef = useRef(null); // store code reader instance for cleanup
+  const hasScannedRef = useRef(false);
+  const codeReaderRef = useRef(null);
+  const scanTimeoutRef = useRef(null);
 
   useEffect(() => {
+    // Check if user is logged in
+    if (!user || !user.token) {
+      setError("Please log in first");
+      navigate("/login");
+      return;
+    }
+
     const codeReader = new BrowserMultiFormatReader();
-    codeReaderRef.current = codeReader; // store instance
+    codeReaderRef.current = codeReader;
     let isMounted = true;
 
-    codeReader
-      .decodeFromVideoDevice(
-        null,
-        videoRef.current,
-        async (decodedResult, err) => {
-          if (!isMounted || hasScannedRef.current) return;
+    console.log("📷 Starting QR scanner for event:", id);
+    console.log("👤 Current user:", user._id);
 
-          if (decodedResult) {
-            hasScannedRef.current = true; // ✅ block further scans
-            const scannedUserId = decodedResult.getText();
-            setResult(scannedUserId);
+    const startScanning = async () => {
+      try {
+        setScanning(true);
+        setError("");
 
-            try {
-              await axios.post(
-                `/api/events/${id}/attendance`,
-                { userId: scannedUserId },
-                { headers: { Authorization: `Bearer ${user.token}` } }
-              );
+        // Check camera permissions
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setError("Camera not available on this device");
+          return;
+        }
 
-              alert("✅ Attendance marked for " + scannedUserId);
+        console.log("🎥 Starting QR scanner...");
 
-              stopCamera();
-              navigate(`/student/events/${id}`);
-            } catch (error) {
-              console.error("Error marking attendance:", error);
-              alert(
-                "❌ " +
-                  (error.response?.data?.message || "Failed to mark attendance")
-              );
-              hasScannedRef.current = false; // allow retry if error
+        // Start decoding from video device
+        const controls = await codeReader.decodeFromVideoDevice(
+          null,
+          videoRef.current,
+          (decodedResult, err) => {
+            if (!isMounted || hasScannedRef.current) return;
+
+            if (decodedResult) {
+              hasScannedRef.current = true;
+              const qrData = decodedResult.getText();
+              setResult(qrData);
+
+              console.log("✅ QR Code detected:", qrData);
+              handleScanResult(qrData);
+            }
+
+            if (err) {
+              // Don't log common "not found" errors during normal scanning
+              if (!err.message?.includes("NotFound")) {
+                // Silent logging for scanning process
+              }
             }
           }
+        );
 
-          if (err && !(err instanceof NotFoundException)) {
-            console.error("Scan error:", err);
-          }
-        }
-      )
-      .catch((err) => console.error("Camera init error:", err));
+        console.log("🎬 QR Scanner started successfully");
+      } catch (err) {
+        console.error("❌ QR Scanner setup error:", err);
+        setError("Failed to setup QR scanner: " + err.message);
+        setScanning(false);
+      }
+    };
+
+    startScanning();
 
     // Cleanup on unmount
-    return () => stopCamera((isMounted = false));
-  }, [id, user.token, navigate]);
+    return () => {
+      console.log("🧹 Cleaning up QR scanner...");
+      isMounted = false;
+      stopCamera();
 
-  // ✅ Stop camera helper function
-  const stopCamera = (isMounted = true) => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      // Clear any pending timeouts
+      if (scanTimeoutRef.current) {
+        clearTimeout(scanTimeoutRef.current);
+      }
+    };
+  }, [id, user, navigate]);
+
+  const handleScanResult = async (qrData) => {
+    try {
+      console.log("🔍 Processing QR data:", qrData);
+
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Please log in first");
+        navigate("/login");
+        return;
+      }
+
+      console.log("📤 Sending attendance request for event:", id);
+
+      // Mark attendance
+      const res = await axios.post(
+        `/api/events/${id}/attendance`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (res.data.success) {
+        setSuccess("✅ Attendance marked successfully!");
+        console.log("✅ Attendance marked:", res.data);
+
+        // Stop camera immediately
+        stopCamera();
+
+        // Redirect after success with delay
+        scanTimeoutRef.current = setTimeout(() => {
+          console.log("🔄 Redirecting to student dashboard...");
+          navigate("/student");
+        }, 2000);
+      }
+    } catch (err) {
+      console.error("❌ Attendance error:", err);
+      const errorMessage =
+        err.response?.data?.message || "Failed to mark attendance";
+      setError("❌ " + errorMessage);
+
+      // Allow retry if error after 3 seconds
+      scanTimeoutRef.current = setTimeout(() => {
+        hasScannedRef.current = false;
+        setError("");
+      }, 3000);
+
+      // Specific error handling
+      if (err.response?.status === 403) {
+        setError("❌ You are not registered for this event");
+      } else if (err.response?.status === 400) {
+        setError("❌ Attendance already marked");
+      }
     }
-    codeReaderRef.current?.stopContinuousDecode?.();
-    if (isMounted) hasScannedRef.current = true; // prevent further scans
   };
 
-  // ✅ Back button handler
+  // Stop camera helper function
+  const stopCamera = () => {
+    console.log("🛑 Stopping camera and scanner...");
+
+    // Stop the QR code reader first
+    if (codeReaderRef.current) {
+      try {
+        codeReaderRef.current.reset();
+        console.log("🔄 QR Reader reset");
+      } catch (err) {
+        console.log("QR Reader already stopped");
+      }
+    }
+
+    // Stop camera tracks
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach((track) => {
+        track.stop();
+        console.log("📹 Camera track stopped:", track.kind);
+      });
+      videoRef.current.srcObject = null;
+    }
+
+    hasScannedRef.current = true;
+    setScanning(false);
+  };
+
+  // Back button handler - FIXED
   const handleBack = () => {
-    stopCamera(false); // stop camera before navigating
-    navigate(-1);
+    console.log("🔙 Back button clicked");
+
+    // Stop camera and cleanup
+    stopCamera();
+
+    // Clear any pending timeouts
+    if (scanTimeoutRef.current) {
+      clearTimeout(scanTimeoutRef.current);
+    }
+
+    // Navigate immediately
+    navigate("/student");
   };
 
   return (
-    <div className="flex flex-col items-center mt-10">
-      <h2 className="text-2xl font-bold mb-4">QR Code Scanner</h2>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-2xl font-bold text-center mb-4">
+          Scan Attendance QR Code
+        </h2>
 
-      {/* Back Button */}
-      <button
-        onClick={handleBack}
-        className="mb-4 px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded"
-      >
-        ← Back
-      </button>
+        {/* Camera Preview */}
+        <div className="relative bg-black rounded-lg overflow-hidden mb-4">
+          <video
+            ref={videoRef}
+            className="w-full h-64 object-cover"
+            muted
+            autoPlay
+            playsInline
+          />
+          {scanning && !error && !success && (
+            <div className="absolute inset-0 border-2 border-green-500 rounded-lg animate-pulse"></div>
+          )}
+        </div>
 
-      <video
-        ref={videoRef}
-        style={{ width: "300px", border: "2px solid black" }}
-        muted
-        autoPlay
-      />
-      {result && <p className="mt-4">Last scanned: {result}</p>}
+        {/* Status Messages */}
+        {scanning && !error && !success && (
+          <p className="text-blue-600 text-center mb-4">
+            🔍 Scanning for QR code...
+          </p>
+        )}
+
+        {success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {success}
+            <p className="text-sm mt-1">Redirecting in 2 seconds...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        {/* Debug Info */}
+        <div className="text-xs text-gray-500 mb-4">
+          <p>Event ID: {id}</p>
+          <p>User: {user?.name}</p>
+          <p>Status: {scanning ? "Scanning" : "Stopped"}</p>
+        </div>
+
+        {/* Instructions */}
+        <div className="text-sm text-gray-600 text-center mb-4">
+          <p>Point your camera at the event's QR code to mark attendance</p>
+        </div>
+
+        {/* Back Button */}
+        <button
+          onClick={handleBack}
+          className="w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600 transition font-medium"
+        >
+          ← Back to Dashboard
+        </button>
+      </div>
     </div>
   );
 }

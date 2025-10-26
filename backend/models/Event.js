@@ -1,14 +1,14 @@
 import mongoose, { Schema } from "mongoose";
 
 const registerationSchema = new mongoose.Schema({
-    user:{type: Schema.Types.ObjectId, ref:"User", required:true},
-    name: {type: String},
-    email: {type: String},
-    attended:{type:Boolean, default:false},
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true},
+    name: { type: String },
+    email: { type: String },
+    attended: { type: Boolean, default: false },
     registeredAt: { type: Date, default: Date.now },
     certificateIssued: { type: Boolean, default: false },
     certificateUrl: { type: String, default: "" },
-})
+});
 
 const attendanceSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },

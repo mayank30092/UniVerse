@@ -109,10 +109,13 @@ export default function AdminEventDetails() {
   if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (!event) return <p className="text-center mt-10">Event not found.</p>;
 
+  // ✅ Check ownership
+  const isOwner = user?._id === event?.createdBy?._id;
+
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 mb-24">
       {/* Edit Form */}
-      {editing && (
+      {editing && isOwner && (
         <div className="bg-white shadow-md rounded-lg p-6 mb-6">
           <h3 className="text-xl font-semibold mb-4">Edit Event</h3>
           <form
@@ -258,58 +261,61 @@ export default function AdminEventDetails() {
         </div>
       </div>
 
-      {/* Admin Actions */}
-      <div className="flex flex-col sm:flex-row gap-2 mb-6 flex-wrap">
-        <button
-          onClick={() => setEditing(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex-1"
-        >
-          Edit
-        </button>
-        <button
-          onClick={async () => {
-            if (!window.confirm("Delete event?")) return;
-            await axios.delete(`/api/events/${id}`, {
-              headers: { Authorization: `Bearer ${user.token}` },
-            });
-            navigate("/admin");
-          }}
-          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex-1"
-        >
-          Delete
-        </button>
-        {event.requiresAttendance && (
-          <>
-            <button
-              onClick={handleGenerateQRCode}
-              disabled={generatingQRCode}
-              className={`px-4 py-2 rounded-lg text-white flex-1 ${
-                generatingQRCode
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
-              }`}
-            >
-              {generatingQRCode ? "Generating QR..." : "Generate QR Code"}
-            </button>
-            <button
-              onClick={handleGenerateCertificates}
-              disabled={generatingCertificates}
-              className={`px-4 py-2 rounded-lg text-white flex-1 ${
-                generatingCertificates
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gray-600 hover:bg-gray-800"
-              }`}
-            >
-              {generatingCertificates
-                ? "Generating..."
-                : "Generate Certificates"}
-            </button>
-          </>
-        )}
-      </div>
+      {/* Admin Actions — only visible to event owner */}
+      {user && event.createdBy && user._id === event.createdBy._id && (
+        <div className="flex flex-col sm:flex-row gap-2 mb-6 flex-wrap">
+          <button
+            onClick={() => setEditing(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex-1"
+          >
+            Edit
+          </button>
+          <button
+            onClick={async () => {
+              if (!window.confirm("Delete event?")) return;
+              await axios.delete(`/api/events/${id}`, {
+                headers: { Authorization: `Bearer ${user.token}` },
+              });
+              navigate("/admin");
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex-1"
+          >
+            Delete
+          </button>
+
+          {event.requiresAttendance && (
+            <>
+              <button
+                onClick={handleGenerateQRCode}
+                disabled={generatingQRCode}
+                className={`px-4 py-2 rounded-lg text-white flex-1 ${
+                  generatingQRCode
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+              >
+                {generatingQRCode ? "Generating QR..." : "Generate QR Code"}
+              </button>
+              <button
+                onClick={handleGenerateCertificates}
+                disabled={generatingCertificates}
+                className={`px-4 py-2 rounded-lg text-white flex-1 ${
+                  generatingCertificates
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gray-600 hover:bg-gray-800"
+                }`}
+              >
+                {generatingCertificates
+                  ? "Generating..."
+                  : "Generate Certificates"}
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* QR Code */}
-      {qrCode && (
+      {isOwner && qrCode && (
         <div className="mb-8 flex flex-col items-center gap-4">
           <img src={qrCode} alt="QR Code" className="w-64 h-64" />
           <button
@@ -322,48 +328,50 @@ export default function AdminEventDetails() {
       )}
 
       {/* Participants Table */}
-      <div className="bg-white shadow-md rounded-lg p-4 overflow-x-auto">
-        <h3 className="text-xl font-semibold mb-4">Participants</h3>
-        {event.participants?.length ? (
-          <table className="w-full min-w-max border border-gray-300 rounded-lg table-auto">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Email</th>
-                <th className="p-2 border">Attendance</th>
-                <th className="p-2 border">Certificate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {event.participants.map((p) => (
-                <tr key={p.user?._id || p.user}>
-                  <td className="p-2 border">{p.name || p.user?.name}</td>
-                  <td className="p-2 border">{p.email || p.user?.email}</td>
-                  <td className="p-2 border text-center">
-                    {p.attended ? "✅ Present" : "❌ Absent"}
-                  </td>
-                  <td className="p-2 border text-center">
-                    {p.attended && p.certificateIssued && p.certificateUrl ? (
-                      <a
-                        href={p.certificateUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        Download
-                      </a>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
+      {isOwner && (
+        <div className="bg-white shadow-md rounded-lg p-4 overflow-x-auto">
+          <h3 className="text-xl font-semibold mb-4">Participants</h3>
+          {event.participants?.length ? (
+            <table className="w-full min-w-max border border-gray-300 rounded-lg table-auto">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 border">Name</th>
+                  <th className="p-2 border">Email</th>
+                  <th className="p-2 border">Attendance</th>
+                  <th className="p-2 border">Certificate</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>No participants yet.</p>
-        )}
-      </div>
+              </thead>
+              <tbody>
+                {event.participants.map((p) => (
+                  <tr key={p.user?._id || p.user}>
+                    <td className="p-2 border">{p.name || p.user?.name}</td>
+                    <td className="p-2 border">{p.email || p.user?.email}</td>
+                    <td className="p-2 border text-center">
+                      {p.attended ? "✅ Present" : "❌ Absent"}
+                    </td>
+                    <td className="p-2 border text-center">
+                      {p.attended && p.certificateIssued && p.certificateUrl ? (
+                        <a
+                          href={p.certificateUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          Download
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No participants yet.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

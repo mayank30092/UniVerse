@@ -12,6 +12,7 @@ router.delete("/:id", verifyToken, authorizeRoles("admin"), eventController.dele
 router.get("/:id/attendance-qrcode", verifyToken, authorizeRoles("admin"), eventController.generateAttendanceQRCode);
 router.post("/:id/certificates/generate", verifyToken, authorizeRoles("admin"), eventController.generateCertificates);
 
+
 // Public routes
 router.get("/", eventController.getAllEvents);
 

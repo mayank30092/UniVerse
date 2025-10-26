@@ -7,21 +7,42 @@ export default function RegisteredEvents() {
   const { user } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("🔐 CURRENT USER DEBUG:");
+    console.log("User ID:", user?._id);
+    console.log("User name:", user?.name);
+    console.log("User email:", user?.email);
+    console.log("Full user object:", user);
     if (!user) return;
+
     const token = user?.token || localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      setError("No authentication token found");
+      setLoading(false);
+      return;
+    }
 
     const fetchRegisteredEvents = async () => {
       try {
+        setLoading(true);
+        setError("");
         const res = await axios.get("/api/events/registered", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setEvents(res.data.data || []);
+
+        console.log("API Response:", res.data); // Debug log
+
+        if (res.data.success) {
+          setEvents(res.data.data || []);
+        } else {
+          setError(res.data.message || "Failed to fetch events");
+        }
       } catch (err) {
         console.error("Error fetching registered events:", err);
+        setError(err.response?.data?.message || "Failed to load events");
       } finally {
         setLoading(false);
       }
@@ -30,6 +51,7 @@ export default function RegisteredEvents() {
     fetchRegisteredEvents();
   }, [user]);
 
+  // Loading and error states
   if (!user) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -62,10 +84,24 @@ export default function RegisteredEvents() {
           </button>
         </div>
 
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
         {events.length === 0 ? (
-          <p className="text-gray-600 text-center md:text-left text-lg">
-            You haven’t registered for any events yet.
-          </p>
+          <div className="text-center">
+            <p className="text-gray-600 text-lg mb-4">
+              You haven't registered for any events yet.
+            </p>
+            <button
+              onClick={() => navigate("/student")}
+              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              Browse Events
+            </button>
+          </div>
         ) : (
           <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {events.map((ev) => (
@@ -96,6 +132,10 @@ export default function RegisteredEvents() {
                     <p className="text-sm text-gray-600">
                       <strong>Time:</strong> {ev.time || "Not specified"} |{" "}
                       <strong>Venue:</strong> {ev.venue}
+                    </p>
+                    {/* Debug info */}
+                    <p className="text-xs text-gray-400 mt-2">
+                      Participants: {ev.participants?.length || 0}
                     </p>
                   </div>
                 </div>

@@ -45,6 +45,10 @@ export default function StudentEventDetails() {
     return () => clearInterval(interval);
   }, [event, user]);
 
+  const handleBack = () => {
+    navigate("/student");
+  };
+
   if (loading)
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -56,6 +60,12 @@ export default function StudentEventDetails() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p className="text-lg text-gray-600">Event not found.</p>
+        <button
+          onClick={handleBack}
+          className="ml-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+        >
+          Back
+        </button>
       </div>
     );
 
@@ -71,7 +81,30 @@ export default function StudentEventDetails() {
   const attended = participant?.attended;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 mt-24 mb-24">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 mb-24">
+      {/* Back Button */}
+      <div className="mb-6">
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition font-medium"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Back to Events
+        </button>
+      </div>
+
       {/* Event Poster */}
       {event.image && (
         <img
@@ -125,14 +158,16 @@ export default function StudentEventDetails() {
 
       {/* Certificate Section */}
       {attended && certificateIssued && certificateUrl ? (
-        <a
-          href={certificateUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-900 w-full md:w-auto inline-block transition"
-        >
-          Download Certificate
-        </a>
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          <a
+            href={certificateUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 w-full md:w-auto inline-block text-center transition"
+          >
+            📄 Download Certificate
+          </a>
+        </div>
       ) : attended ? (
         <p className="text-gray-500 mt-2">Certificate is being generated...</p>
       ) : null}

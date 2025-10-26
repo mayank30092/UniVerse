@@ -63,19 +63,31 @@ export const getAllEvents = async (req, res) => {
   }
 };
 
-// Get registered events for student
+// Get registered events for student - SIMPLE FIXED VERSION
 export const getRegisteredEvents = async (req, res) => {
   try {
     if (!req.user?._id) return res.status(400).json({ success: false, message: "User ID missing" });
+    
+    const userId = req.user._id;
+    
+    console.log("🔍 GET REGISTERED EVENTS DEBUG:");
+    console.log("User ID:", userId);
 
-    const userId = new mongoose.Types.ObjectId(req.user._id);
-    const events = await Event.find({ "participants.user": userId })
-                              .sort({ date: 1 })
-                              .populate("participants.user", "name email");
+    const events = await Event.find({
+      "participants.user": new mongoose.Types.ObjectId(userId)
+    })
+    .sort({ date: -1 })
+    .populate("participants.user", "name email")
+    .lean();
+
+    console.log(`✅ Found ${events.length} events for user ${userId}`);
+    
+    // Remove the problematic debug code that causes the error
+    // Just return the events without additional processing
 
     res.json({ success: true, data: events });
   } catch (err) {
-    console.error("Error in /registered route:", err);
+    console.error("❌ Error in /registered route:", err);
     res.status(500).json({ success: false, message: "Failed to fetch registered events" });
   }
 };
@@ -101,6 +113,10 @@ export const updateEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ success: false, message: "Event not found" });
 
+    if (event.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Not authorized to update this event" });
+    }
+
     if (req.file && event.image) {
       const publicId = event.image.split("/").pop().split(".")[0];
       await cloudinary.uploader.destroy(`events/${publicId}`);
@@ -124,11 +140,20 @@ export const updateEvent = async (req, res) => {
 // Delete event
 export const deleteEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
-    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
 
+    if (event.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Not authorized to delete this event" });
+    }
+
+    await event.deleteOne();
     res.json({ success: true, message: "Event deleted successfully" });
+
   } catch (error) {
+    console.error("Delete event error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -137,52 +162,47 @@ export const deleteEvent = async (req, res) => {
 export const registerForEvent = async (req, res) => {
   try {
     const eventId = req.params.id;
-    const userId = req.user.id; // from token
+    const userId = req.user._id;
 
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ success: false, message: "Event not found" });
 
-      // ✅ Prevent duplicate registration
-    const alreadyRegistered = event.participants.some(
-      (p) => p._id.toString() === userId
-    );
-
-    if (alreadyRegistered) {
-      return res
-        .status(400)
-        .json({ message: "You are already registered for this event." });
-    }
-
-
-    let eventDateTime = new Date(event.date);
-    if (event.time) {
-      const [hours, minutes] = event.time.split(":").map(Number);
-      eventDateTime.setHours(hours, minutes);
-    }
-
-    if (eventDateTime < new Date())
-      return res.status(400).json({ success: false, message: "Event already passed" });
     event.participants = event.participants || [];
-    if (event.participants.some(p => p.user.toString() === userId))
-      return res.status(400).json({ success: false, message: "Already registered" });
 
-    event.participants.push({
+    const alreadyRegistered = event.participants.some(p => p.user.toString() === userId);
+    if (alreadyRegistered)
+      return res.status(400).json({ success: false, message: "You have already registered for this event." });
+
+    const participant = {
       user: new mongoose.Types.ObjectId(userId),
       name: req.user.name,
       email: req.user.email,
-    });
+      attended: false,
+      certificateIssued: false,
+    };
 
+    event.participants.push(participant);
     await event.save();
-    res.json({ success: true, message: "Registered successfully", data: event });
+
+    // Verify the registration worked
+    const updatedEvent = await Event.findById(eventId);
+    const newParticipant = updatedEvent.participants.find(p => p.user.toString() === userId.toString());
+    console.log("✅ Registration verified:", !!newParticipant);
+    console.log("📊 Total participants now:", updatedEvent.participants.length);
+
+
+    // Return only the participant instead of full event
+    res.json({ success: true, message: "Registered successfully", data: participant });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Register event error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // Mark attendance
 export const markEventAttendance = async (req, res) => {
   const eventId = req.params.id;
-  const userId = req.user.id;
+  const userId = req.user._id;
 
   try {
     if (!mongoose.Types.ObjectId.isValid(eventId))

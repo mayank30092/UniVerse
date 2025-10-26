@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { parseJwt } from "../utils/helpers";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -10,33 +11,61 @@ export default function Login() {
   const { setUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // Enhanced login component with debugging
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
     try {
-      const res = await axios.post("/api/auth/login", { email, password });
+      console.log("🔄 Frontend login attempt:");
+      console.log("Email:", email);
+      console.log("Password length:", password.length);
 
-      const token = res.data.token;
-      const role = res.data.user?.role || res.data.role;
-      const name = res.data.user?.name || res.data.name;
-      const _id = res.data.user?._id || res.data._id;
+      const res = await axios.post("/api/auth/login", {
+        email,
+        password,
+      });
 
+      console.log("✅ Login response:", res.data);
+
+      const { token, role, name, _id } = res.data;
+
+      // Store in localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
       localStorage.setItem("name", name);
 
-      setUser({ token, role, name, _id });
+      // Decode token to get all user data
+      const decoded = parseJwt(token);
+      console.log("🔍 Decoded token in frontend:", decoded);
 
-      alert("Login successful!");
-      navigate(role === "admin" ? "/admin" : "/student");
+      // Update context with ALL user data
+      setUser({
+        token,
+        role,
+        name,
+        _id: decoded.id || _id,
+        email: decoded.email,
+      });
+
+      console.log("✅ User set in context:", {
+        token: !!token,
+        role,
+        name,
+        _id: decoded.id || _id,
+        email: decoded.email,
+      });
+
+      // Redirect
+      if (role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/student");
+      }
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
+      console.error("❌ Login error:", err);
+      console.error("Error response:", err.response?.data);
+      setError(err.response?.data?.message || "Login failed");
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 p-4">
       <div className="w-full max-w-md md:max-w-lg bg-white rounded-3xl shadow-2xl p-8 md:p-12">

@@ -30,7 +30,7 @@ export default function CreateEvent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user?.token) return;
+    if (!user?.token) return alert("Not authorized");
     setLoading(true);
 
     try {
