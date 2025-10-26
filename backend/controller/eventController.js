@@ -164,7 +164,7 @@ export const deleteEvent = async (req, res) => {
   }
 };
 
-// Register student for event
+// Register student for event - with time consideration
 export const registerForEvent = async (req, res) => {
   try {
     const eventId = req.params.id;
@@ -172,6 +172,17 @@ export const registerForEvent = async (req, res) => {
 
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+
+    // ✅ CHECK: Prevent registration for past events (includes time)
+    const eventDateTime = new Date(event.date);
+    const currentDateTime = new Date();
+    
+    if (eventDateTime < currentDateTime) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Cannot register for past events. This event has already occurred." 
+      });
+    }
 
     event.participants = event.participants || [];
 
@@ -195,7 +206,6 @@ export const registerForEvent = async (req, res) => {
     const newParticipant = updatedEvent.participants.find(p => p.user.toString() === userId.toString());
     console.log("✅ Registration verified:", !!newParticipant);
     console.log("📊 Total participants now:", updatedEvent.participants.length);
-
 
     // Return only the participant instead of full event
     res.json({ success: true, message: "Registered successfully", data: participant });

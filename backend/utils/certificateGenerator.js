@@ -1,5 +1,10 @@
 import { v2 as cloudinary } from "cloudinary";
 import { createCanvas, loadImage } from "canvas";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ✅ Configure Cloudinary (make sure your .env has correct values)
 cloudinary.config({
@@ -17,8 +22,11 @@ export async function generateAndUploadCertificate(event, participant) {
 
     console.log("🖌 Drawing certificate for:", participant.name, event.title);
 
-    // ✅ Load template (make sure path is correct relative to backend)
-    const background = await loadImage("assets/templates/Certificate_template.png");
+    // ✅ FIX: Use absolute path for production
+    const templatePath = path.join(__dirname, '../assets/templates/Certificate_template.png');
+    console.log("🔍 Template path:", templatePath);
+    
+    const background = await loadImage(templatePath);
     ctx.drawImage(background, 0, 0, width, height);
 
     // Name
