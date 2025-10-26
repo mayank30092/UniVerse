@@ -7,6 +7,7 @@ import { parseJwt } from "../utils/helpers";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { setUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -72,6 +73,13 @@ export default function Login() {
         <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">
           Login to UniVerse
         </h2>
+
+        {/* Error Message - FIXED STYLING */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center animate-pulse mb-8">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <label className="flex flex-col">

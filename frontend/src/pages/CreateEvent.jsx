@@ -40,7 +40,10 @@ export default function CreateEvent() {
       formData.append("date", form.date);
       formData.append("time", form.time);
       formData.append("venue", form.venue);
-      formData.append("requiresAttendance", requiresAttendance);
+
+      // FIX: Convert boolean to string for FormData
+      formData.append("requiresAttendance", requiresAttendance.toString());
+
       if (image) formData.append("image", image);
 
       const config = {

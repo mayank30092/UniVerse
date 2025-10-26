@@ -32,13 +32,16 @@ export const createEvent = async (req, res) => {
       return res.status(400).json({ message: "Title, date, and venue are required" });
     }
 
+    // FIX: Properly handle the string "false" from FormData
+    const requiresAttendanceBool = requiresAttendance === 'true' || requiresAttendance === true;
+
     const event = await Event.create({
       title,
       description,
       date,
       time,
       venue,
-      requiresAttendance: !!requiresAttendance,
+      requiresAttendance: requiresAttendanceBool, // Use the properly converted boolean
       createdBy: req.user._id,
       image: req.file?.path,
     });
@@ -123,12 +126,15 @@ export const updateEvent = async (req, res) => {
       event.image = req.file.path;
     }
 
+    // FIX: Properly handle the string "false" from FormData
+    const requiresAttendanceBool = requiresAttendance === 'true' || requiresAttendance === true;
+
     event.title = title ?? event.title;
     event.description = description ?? event.description;
     event.date = date ?? event.date;
     event.time = time && time.trim() !== "" ? time : event.time || "10:00 AM";
     event.venue = venue ?? event.venue;
-    event.requiresAttendance = requiresAttendance !== undefined ? !!requiresAttendance : event.requiresAttendance;
+    event.requiresAttendance = requiresAttendanceBool;
 
     await event.save();
     res.json({ success: true, message: "Event updated successfully", data: event });
